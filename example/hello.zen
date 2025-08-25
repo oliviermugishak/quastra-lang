@@ -1,0 +1,5 @@
+// hello.zen
+fn main() -> int {
+  let mut x = 42;
+  return x; // This is a comment
+}
