@@ -50,7 +50,7 @@ cd quastra-lang
 make run
 ```
 
-Check out the [`spec.md`](./spec.md) for a full language overview.
+Check out the [`spec.md`](./docs/spec.md) for a full language overview.
 
 ---
 
