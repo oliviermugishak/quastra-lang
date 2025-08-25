@@ -72,7 +72,7 @@ int main(int argc, const char* argv[]) {
     printBanner();
 
     if (argc != 2) {
-        fprintf(stderr, "Usage: zen_compiler <file_path>\n");
+        fprintf(stderr, "Usage: quastra <file_path>\n");
         exit(64);
     }
     
@@ -82,9 +82,9 @@ int main(int argc, const char* argv[]) {
     }
 
     Lexer lexer;
-    zen_lexer_init(&lexer, source);
+    quastra_lexer_init(&lexer, source);
 
-    ASTNode* root_node = zen_parse_program(&lexer);
+    ASTNode* root_node = quastra_parse_program(&lexer);
     
     printf("--- AST --- \n");
     print_ast(root_node, 0);

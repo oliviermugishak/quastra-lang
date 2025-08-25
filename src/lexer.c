@@ -160,13 +160,13 @@ static Token identifier(Lexer* lexer) {
 }
 
 
-void zen_lexer_init(Lexer* lexer, const char* source) {
+void quastra_lexer_init(Lexer* lexer, const char* source) {
     lexer->source = source;
     lexer->start = 0;
     lexer->current = 0;
 }
 
-Token zen_lexer_scan_token(Lexer* lexer) {
+Token quastra_lexer_scan_token(Lexer* lexer) {
     skip_whitespace(lexer);
     lexer->start = lexer->current;
     

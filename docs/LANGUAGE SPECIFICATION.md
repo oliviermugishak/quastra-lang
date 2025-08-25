@@ -1,7 +1,7 @@
 
-# 🧘 Zen Language Specification
+# 🧘 Quastra Language Specification
 
-Zen is a modern systems programming language focused on **simplicity**, **performance**, and **safety**. It blends familiar syntax with low-level control, without the baggage of legacy languages. Zen supports multiple paradigms including object-style methods, functional pipelines, and data-oriented layouts.
+Quastra is a modern systems programming language focused on **simplicity**, **performance**, and **safety**. It blends familiar syntax with low-level control, without the baggage of legacy languages. Quastra supports multiple paradigms including object-style methods, functional pipelines, and data-oriented layouts.
 
 ---
 
@@ -60,29 +60,29 @@ Zen is a modern systems programming language focused on **simplicity**, **perfor
 
 ### 3.1 Modules and Imports
 
-```zen
-// hello.zen
+```quastra
+// hello..qstra
 module app.hello
 use core.io
 
 fn main() -> int {
-  println("hello, zen")
+  println("hello, quastra")
   return 0
 }
 ```
 
 ### 3.2 Variables
 
-```zen
+```quastra
 let x = 10
 let mut y = 20
 y = 30
-let name: string = "Zen"
+let name: string = "Quastra"
 ```
 
 ### 3.3 Functions
 
-```zen
+```quastra
 fn add(a: int, b: int) -> int {
   return a + b
 }
@@ -90,13 +90,13 @@ fn add(a: int, b: int) -> int {
 
 ### 3.4 Records
 
-```zen
+```quastra
 record Vec2 { float x, y }
 ```
 
 ### 3.5 Type Aliases
 
-```zen
+```quastra
 type Bytes = byte[]
 type Callback = fn() -> void
 ```
@@ -107,7 +107,7 @@ type Callback = fn() -> void
 
 ### 4.1 Conditionals
 
-```zen
+```quastra
 if (x > 10) {
   println("greater")
 } else if (x < 10) {
@@ -119,7 +119,7 @@ if (x > 10) {
 
 ### 4.2 Loops & Comprehensions
 
-```zen
+```quastra
 fn sum_evens(xs: int[]) -> int {
   let mut acc = 0
   for x in xs if (x & 1) == 0 {
@@ -135,7 +135,7 @@ fn sum_evens_comprehension(xs: int[]) -> int {
 
 ### 4.3 Pattern Matching
 
-```zen
+```quastra
 union Expr {
   lit(int),
   add(Box[Expr], Box[Expr]),
@@ -155,7 +155,7 @@ fn eval(e: Expr) -> int {
 
 ### 5.1 Protocols
 
-```zen
+```quastra
 protocol Order {
   fn cmp(self, other: Self) -> int
 }
@@ -163,7 +163,7 @@ protocol Order {
 
 ### 5.2 Impl Blocks
 
-```zen
+```quastra
 record Point { int x, y }
 
 impl Order for Point {
@@ -175,7 +175,7 @@ impl Order for Point {
 
 ### 5.3 Extensions
 
-```zen
+```quastra
 extend Point {
   fn manhattan(self) -> int {
     return abs(self.x) + abs(self.y)
@@ -194,7 +194,7 @@ extend Point {
 - Ownership via `Box`, `Rc`, `Weak`  
 - RAII with `using`
 
-```zen
+```quastra
 use core.fs
 
 fn count_lines(path: string) -> Result[int] {
@@ -207,7 +207,7 @@ fn count_lines(path: string) -> Result[int] {
 
 ### 6.2 Error Handling
 
-```zen
+```quastra
 fn read_int(s: string) -> Result[int] { /* ... */ }
 
 fn demo() {
@@ -218,7 +218,7 @@ fn demo() {
 
 ### 6.3 Unsafe Blocks
 
-```zen
+```quastra
 unsafe fn poke(buf: byte[]) {
   let p = mem.ptr(buf)
   mem.store(p, 0, 65 as byte)
@@ -238,7 +238,7 @@ unsafe fn poke(buf: byte[]) {
 
 ## 8. Foreign Function Interface (FFI)
 
-```zen
+```quastra
 foreign "c" {
   fn malloc(n: int) -> Ptr[void]
   fn free(p: Ptr[void]) -> void

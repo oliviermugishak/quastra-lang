@@ -1,6 +1,6 @@
 // banner.h
-#ifndef ZEN_BANNER_H
-#define ZEN_BANNER_H
+#ifndef QUASTRA_BANNER_H
+#define QUASTRA_BANNER_H
 
 void printBanner();
 

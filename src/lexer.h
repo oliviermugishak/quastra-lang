@@ -1,9 +1,9 @@
-#ifndef ZEN_LEXER_H
-#define ZEN_LEXER_H
+#ifndef QUASTRA_LEXER_H
+#define QUASTRA_LEXER_H
 
 #include "common.h"
 
-// All keywords from the Zen spec are now represented.
+// All keywords from the Quastra spec are now represented.
 typedef enum {
     TOKEN_EOF,
     TOKEN_IDENTIFIER,
@@ -87,7 +87,7 @@ typedef struct {
     size_t current;
 } Lexer;
 
-void zen_lexer_init(Lexer* lexer, const char* source);
-Token zen_lexer_scan_token(Lexer* lexer);
+void quastra_lexer_init(Lexer* lexer, const char* source);
+Token quastra_lexer_scan_token(Lexer* lexer);
 
-#endif // ZEN_LEXER_H
+#endif // QUASTRA_LEXER_H

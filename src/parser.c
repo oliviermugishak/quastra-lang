@@ -7,7 +7,7 @@ static Token g_current_token;
 
 // Helper function to advance to the next token.
 static void advance() {
-    g_current_token = zen_lexer_scan_token(g_lexer);
+    g_current_token = quastra_lexer_scan_token(g_lexer);
 }
 
 // Consumes the current token if it matches the expected type.
@@ -119,7 +119,7 @@ static ASTNode* parse_fn_declaration() {
 }
 
 // The main entry point for the parser.
-ASTNode* zen_parse_program(Lexer* lexer) {
+ASTNode* quastra_parse_program(Lexer* lexer) {
     g_lexer = lexer;
     advance(); // Prime the lexer by getting the first token.
     return parse_fn_declaration();

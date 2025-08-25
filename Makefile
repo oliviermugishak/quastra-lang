@@ -7,7 +7,7 @@ SRCS = src/main.c src/lexer.c src/parser.c src/banner.c
 OBJS = $(patsubst src/%.c, build/%.o, $(SRCS))
 
 # Define the executable name and output directory
-EXECUTABLE = build/zen
+EXECUTABLE = build/quastra
 BUILD_DIR = build
 
 .PHONY: all

@@ -1,5 +1,5 @@
-#ifndef ZEN_PARSER_H
-#define ZEN_PARSER_H
+#ifndef QUASTRA_PARSER_H
+#define QUASTRA_PARSER_H
 
 #include "lexer.h"
 
@@ -50,6 +50,6 @@ typedef struct ASTNode {
 } ASTNode;
 
 // Our main parsing function.
-ASTNode* zen_parse_program(Lexer* lexer);
+ASTNode* quastra_parse_program(Lexer* lexer);
 
-#endif // ZEN_PARSER_H
+#endif // QUASTRA_PARSER_H
