@@ -1,82 +1,115 @@
+# 🧘 Quastra Language Specification v2 (Final)
 
-# 🧘 Quastra Language Specification
-
-Quastra is a modern systems programming language focused on **simplicity**, **performance**, and **safety**. It blends familiar syntax with low-level control, without the baggage of legacy languages. Quastra supports multiple paradigms including object-style methods, functional pipelines, and data-oriented layouts.
-
----
-
-## 📚 Table of Contents
-
-1. [Lexical Structure](#1-lexical-structure)  
-2. [Core Types](#2-core-types)  
-3. [Declarations](#3-declarations)  
-4. [Control Flow](#4-control-flow)  
-5. [Protocols & Methods](#5-protocols--methods)  
-6. [Memory and Performance](#6-memory-and-performance)  
-7. [Concurrency](#7-concurrency)  
-8. [Foreign Function Interface (FFI)](#8-foreign-function-interface-ffi)  
-9. [Standard Library](#9-standard-library-core-packages)
+Quastra is a modern **systems programming language** designed for **performance, safety, and clarity**. It is fully **type-safe**, has **minimal syntax**, **built-in concurrency**, and is **extensible for advanced systems programming**, suitable for everything from **OS kernels to game engines, high-performance backends, and desktop apps**.
 
 ---
 
-## 1. Lexical Structure
+## 🎯 Design Goals
+
+1. **Type-safety and predictability**
+
+   * Prevent undefined behavior and memory corruption.
+   * Explicit ownership semantics.
+   * Optional heap allocation, stack-first by default.
+
+2. **Minimal syntax, readable**
+
+   * Lean language constructs.
+   * Inline methods in records, optional `impl` blocks.
+   * No unnecessary boilerplate.
+
+3. **High-performance**
+
+   * Deterministic memory layout.
+   * No garbage collector.
+   * Low-level primitives via optional modules (`unsafe`, `core.mem`).
+
+4. **Built-in concurrency**
+
+   * Lightweight tasks (`spawn`) and structured concurrency (`scope`).
+   * Channels for safe communication.
+
+5. **Extensible**
+
+   * Advanced features (FFI, unsafe memory ops, advanced synchronization) are optional modules.
+
+6. **General-purpose**
+
+   * Suitable for OS kernels, game engines, high-performance servers, web apps, and more.
+
+---
+
+## 1️⃣ Lexical Structure
 
 ### 1.1 Tokens
 
-- **Keywords**: `fn`, `record`, `type`, `protocol`, `impl`, `extend`, `pub`, `use`, `module`, `unsafe`, `if`, `else`, `while`, `for`, `in`, `yield`, `return`, `let`, `mut`, `match`, `try`, `spawn`, `await`, `scope`, `using`, `const`
-- **Literals**:
-  - Integer: `1`, `42`, `100_000`
-  - Float: `3.14`, `0.5`, `1.2e-3`
-  - String: `"hello, world"`
-  - Character: `'c'`
-  - Boolean: `true`, `false`
-- **Operators**: `+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `!`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+=`, `-=`, `*=`, `/=`, `=`
-- **Separators**: `(`, `)`, `{`, `}`, `[`, `]`, `,`, `.`
-- **Semicolons**: Optional; newline or closing brace implies end of statement.
+* **Keywords**:
+  `fn`, `record`, `union`, `protocol`, `impl`, `extend`, `pub`, `use`, `module`, `unsafe`, `if`, `else`, `while`, `for`, `in`, `yield`, `return`, `let`, `mut`, `match`, `try`, `spawn`, `await`, `scope`, `using`, `const`, `Option`, `some`, `none`
 
-### 1.2 Comments
+* **Operators**:
+  Arithmetic: `+`, `-`, `*`, `/`, `%`
+  Comparison: `==`, `!=`, `<`, `>`, `<=`, `>=`
+  Logical: `!`, `&&`, `||`
+  Bitwise: `&`, `|`, `^`, `<<`, `>>`
+  Assignment: `=`, `+=`, `-=`, `*=`, `/=`
 
-- Single-line: `//`
+* **Separators**: `(`, `)`, `{`, `}`, `[`, `]`, `,`, `.`
 
-### 1.3 Visibility
+* **Literals**:
 
-- **Private**: Default for all declarations  
-- **Public**: Use `pub` keyword
+  * Integer: `42`, `100_000`
+  * Float: `3.14`, `1.2e-3`
+  * Boolean: `true`, `false`
+  * Character: `'c'`
+  * String: `"hello"`
 
----
+* **Comments**:
 
-## 2. Core Types
+  * Single-line: `//`
+  * Multi-line: `/* ... */`
 
-| Category     | Type         | Description |
-|--------------|--------------|-------------|
-| Primitives   | `int`, `float`, `bool`, `byte`, `char`, `string` | `int` and `float` are 64-bit by default |
-| Built-ins    | `T[]`, `Slice[T]`, `Map[K,V]`, `Set[T]`, `Option[T]` | Arrays, slices, maps, sets, and optional values |
-| User Data    | `record`, `union` | Value types and tagged unions |
-| Pointers     | `Ptr[T]`, `Box[T]`, `Rc[T]`, `Weak[T]` | Raw and managed pointers |
+* **Semicolons** are optional; newlines or closing braces imply end of statement.
 
 ---
 
-## 3. Declarations
+## 2️⃣ Types
+
+| Category   | Types                                     | Notes                                        |
+| ---------- | ----------------------------------------- | -------------------------------------------- |
+| Primitives | `int`, `float`, `bool`, `char`, `string`  | 64-bit defaults                              |
+| Compound   | `record`, `union`, `array[T]`, `slice[T]` | Value types, tagged unions, resizable arrays |
+| Generic    | `Option[T]`                               | Type-safe optional values, replaces `null`   |
+| Pointers   | `Ptr[T]`, `Box[T]`, `Rc[T]`, `Weak[T]`    | Raw & managed heap allocation, optional      |
+| Function   | `fn(T1,T2...) -> R`                       | Typed first-class functions                  |
+| Protocols  | `protocol`                                | Type-safe polymorphism (interfaces)          |
+
+**Notes**:
+
+* Stack-first allocation by default for speed.
+* Heap allocation is explicit via `Box`.
+* `Option[T]` avoids null references.
+
+---
+
+## 3️⃣ Declarations
 
 ### 3.1 Modules and Imports
 
 ```quastra
-// hello..qstra
-module app.hello
+module app.main
 use core.io
 
 fn main() -> int {
-  println("hello, quastra")
-  return 0
+    println("Hello Quastra!")
+    return 0
 }
 ```
 
 ### 3.2 Variables
 
 ```quastra
-let x = 10
-let mut y = 20
-y = 30
+let x = 10        // immutable
+let mut y = 20    // mutable
 let name: string = "Quastra"
 ```
 
@@ -84,176 +117,181 @@ let name: string = "Quastra"
 
 ```quastra
 fn add(a: int, b: int) -> int {
-  return a + b
+    return a + b
+}
+
+// Inline methods in records
+record Vec2 { x: float, y: float }
+fn (v: Vec2) magnitude() -> float {
+    return sqrt(v.x*v.x + v.y*v.y)
 }
 ```
 
-### 3.4 Records
+### 3.4 Records / Unions
 
 ```quastra
-record Vec2 { float x, y }
-```
+record Point { x: int, y: int }
 
-### 3.5 Type Aliases
-
-```quastra
-type Bytes = byte[]
-type Callback = fn() -> void
-```
-
----
-
-## 4. Control Flow
-
-### 4.1 Conditionals
-
-```quastra
-if (x > 10) {
-  println("greater")
-} else if (x < 10) {
-  println("less")
-} else {
-  println("equal")
-}
-```
-
-### 4.2 Loops & Comprehensions
-
-```quastra
-fn sum_evens(xs: int[]) -> int {
-  let mut acc = 0
-  for x in xs if (x & 1) == 0 {
-    acc += x * 2
-  }
-  return acc
-}
-
-fn sum_evens_comprehension(xs: int[]) -> int {
-  return sum( for x in xs if (x & 1) == 0 yield x * 2 )
-}
-```
-
-### 4.3 Pattern Matching
-
-```quastra
 union Expr {
-  lit(int),
-  add(Box[Expr], Box[Expr]),
-}
-
-fn eval(e: Expr) -> int {
-  match e {
-    lit(n)    => n,
-    add(a, b) => eval(*a) + eval(*b),
-  }
+    Lit(int),
+    Add(Box[Expr], Box[Expr])
 }
 ```
 
 ---
 
-## 5. Protocols & Methods
-
-### 5.1 Protocols
+## 4️⃣ Control Flow
 
 ```quastra
-protocol Order {
-  fn cmp(self, other: Self) -> int
+if x > 0 {
+    println("positive")
+} else if x < 0 {
+    println("negative")
+} else {
+    println("zero")
 }
-```
 
-### 5.2 Impl Blocks
-
-```quastra
-record Point { int x, y }
-
-impl Order for Point {
-  fn cmp(self, other: Point) -> int {
-    return (self.x - other.x) != 0 ? self.x - other.x : self.y - other.y
-  }
+for i in 0..10 {
+    println(i)
 }
-```
 
-### 5.3 Extensions
+while x > 0 {
+    x -= 1
+}
 
-```quastra
-extend Point {
-  fn manhattan(self) -> int {
-    return abs(self.x) + abs(self.y)
-  }
+match expr {
+    Lit(n) => n,
+    Add(a,b) => eval(*a) + eval(*b)
 }
 ```
 
 ---
 
-## 6. Memory and Performance
-
-### 6.1 Memory Model
-
-- No garbage collector  
-- Value semantics for `record` types  
-- Ownership via `Box`, `Rc`, `Weak`  
-- RAII with `using`
+## 5️⃣ Protocols & Polymorphism
 
 ```quastra
-use core.fs
+protocol Comparable {
+    fn cmp(self, other: Self) -> int
+}
 
-fn count_lines(path: string) -> Result[int] {
-  using f = try File.open(path)
-  let mut n = 0
-  for line in f.lines() { n += 1 }
-  return ok(n)
+record Point { x: int, y: int }
+fn (p: Point) cmp(self, other: Point) -> int {
+    return if self.x != other.x { self.x - other.x } else { self.y - other.y }
 }
 ```
 
-### 6.2 Error Handling
+* Optional `impl` blocks for grouping methods if desired.
+
+---
+
+## 6️⃣ Memory & Resource Management
+
+* **Stack-first allocation** by default.
+* **Heap allocation** via `Box[T]`.
+* **RAII / using** ensures deterministic resource cleanup:
 
 ```quastra
-fn read_int(s: string) -> Result[int] { /* ... */ }
+using f = File.open("data.txt")
+for line in f.lines() {
+    println(line)
+} // file automatically closed
+```
+
+* Optional `unsafe` module for pointer arithmetic / advanced memory ops.
+
+---
+
+## 7️⃣ Concurrency
+
+* Lightweight tasks: `spawn { ... }`
+* Structured concurrency: `scope { ... }`
+* Channels: `Channel[T]` for safe communication
+
+```quastra
+let ch: Channel[int] = Channel()
+
+spawn {
+    for i in 1..5 { ch.send(i) }
+    ch.close()
+}
+
+spawn {
+    for x in ch { println(x) }
+}
+
+await scope
+```
+
+---
+
+## 8️⃣ Error Handling
+
+* `Result[T]` type with `ok` / `err` variants
+* `try` / `catch` optional; use `try` for propagation:
+
+```quastra
+fn read_int(s: string) -> Result[int] { ... }
 
 fn demo() {
-  let n = try read_int("42")
-  println(n)
+    let n = try read_int("42")
+    println(n)
 }
 ```
 
-### 6.3 Unsafe Blocks
+---
+
+## 9️⃣ Generics
 
 ```quastra
-unsafe fn poke(buf: byte[]) {
-  let p = mem.ptr(buf)
-  mem.store(p, 0, 65 as byte)
-}
+fn swap[T](a: T, b: T) -> (T,T) { return (b,a) }
 ```
 
----
-
-## 7. Concurrency
-
-- `spawn`: Lightweight task  
-- `await`: Suspend until completion  
-- `scope`: Structured task management  
-- `Channel[T]`: Type-safe communication
+* Type-safe, fully generic functions and records.
+* Constraints via protocols: `fn f[T: Comparable](a:T,b:T) -> T { ... }`
 
 ---
 
-## 8. Foreign Function Interface (FFI)
+## 10️⃣ Standard Library (Core)
 
-```quastra
-foreign "c" {
-  fn malloc(n: int) -> Ptr[void]
-  fn free(p: Ptr[void]) -> void
-}
-```
+| Module            | Purpose                           |
+| ----------------- | --------------------------------- |
+| `core.io`         | File & console I/O                |
+| `core.fs`         | File system operations            |
+| `core.net`        | Networking                        |
+| `core.concurrent` | Tasks, Channels, Atomic counters  |
+| `core.mem`        | Memory utils, allocators          |
+| `core.math`       | Linear algebra, vectors, matrices |
+| `core.opengl`     | 3D rendering                      |
+| `core.db`         | Database drivers                  |
+| `core.ui`         | Optional UI toolkit               |
 
 ---
 
-## 9. Standard Library (Core Packages)
+## 11️⃣ Optional Advanced Modules
 
-- `core.io`: I/O and streams  
-- `core.fs`: File system  
-- `core.net`: Networking  
-- `core.concurrent`: Concurrency primitives  
-- `core.ui`: UI toolkit  
-- `core.db`: Database drivers  
-- `core.mem`: Memory management
+* `core.unsafe` → pointer arithmetic, manual memory ops
+* `core.futures` → async/await with high-performance tasks
+* `core.crypto` → cryptography
+* `core.sys` → low-level OS interactions
+
+---
+
+## 12️⃣ Concurrency & Parallelism Philosophy
+
+* **Built-in lightweight tasks** instead of OS threads.
+* **Channels** instead of locks by default.
+* **Structured concurrency** ensures safe resource lifetimes.
+
+> These features allow Quastra to power **OS kernels, game engines, and high-performance backend servers** safely.
+
+---
+
+## 13️⃣ Summary of Language Philosophy
+
+* **Safety**: No nulls, enforced types, predictable memory layout.
+* **Performance**: Stack-first, optional heap, deterministic.
+* **Simplicity**: Minimal keywords, readable, inline methods.
+* **Extensible**: Advanced systems primitives optional.
+* **Concurrency-first**: Tasks, channels, structured scopes.
+* **General-purpose**: From OS kernels to games to web servers.
 

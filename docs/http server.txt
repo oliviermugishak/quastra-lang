@@ -1,0 +1,156 @@
+Perfect — let’s design a **full multi-threaded HTTP server** in the new simplified, type-safe, concurrent Quastra. This will demonstrate **concurrency, type safety, and minimal syntax**, while remaining fast.
+
+We’ll assume a **minimal standard library** with:
+
+* `core.net` → TCP/Listener/Stream
+* `core.concurrent` → `spawn`, `Channel`, `scope`
+* `core.io` → simple read/write utilities
+
+---
+
+# 🖥 Quastra Multi-threaded HTTP Server Example
+
+```quastra
+module app.http_server
+
+use core.net
+use core.concurrent
+use core.io
+
+// --- Request / Response types ---
+record HttpRequest {
+    method: string
+    path: string
+    headers: Map[string, string]
+    body: string
+}
+
+record HttpResponse {
+    status: int
+    headers: Map[string, string]
+    body: string
+}
+
+// --- Simple parser for incoming HTTP requests ---
+fn parse_request(raw: string) -> Option[HttpRequest] {
+    let lines = raw.split("\r\n")
+    if lines.len < 1 { return none }
+
+    let parts = lines[0].split(" ")
+    if parts.len != 3 { return none }
+
+    let method = parts[0]
+    let path = parts[1]
+    let headers: Map[string,string] = Map()
+    let mut i = 1
+
+    while lines[i] != "" {
+        let kv = lines[i].split(": ")
+        if kv.len == 2 {
+            headers[kv[0]] = kv[1]
+        }
+        i += 1
+    }
+
+    let body = lines[i+1..].join("\n")
+    return some(HttpRequest(method, path, headers, body))
+}
+
+// --- Simple response formatter ---
+fn format_response(resp: HttpResponse) -> string {
+    let mut raw = "HTTP/1.1 ".concat(resp.status.to_string()).concat(" OK\r\n")
+    for k, v in resp.headers {
+        raw = raw.concat(k).concat(": ").concat(v).concat("\r\n")
+    }
+    raw = raw.concat("\r\n").concat(resp.body)
+    return raw
+}
+
+// --- Worker: handles a single connection ---
+fn handle_client(mut stream: TcpStream) {
+    let raw = try stream.read_to_string(4096) // read up to 4KB
+    match parse_request(raw) {
+        none => {
+            let resp = HttpResponse(400, Map(), "Bad Request")
+            let _ = stream.write(format_response(resp))
+            return
+        }
+        some(req) => {
+            // Simple routing logic
+            let body = match req.path {
+                "/" => "Welcome to Quastra HTTP Server!",
+                "/hello" => "Hello, world!",
+                _ => "Not Found"
+            }
+
+            let mut headers: Map[string,string] = Map()
+            headers["Content-Type"] = "text/plain"
+            headers["Content-Length"] = body.len().to_string()
+
+            let resp = HttpResponse(200, headers, body)
+            let _ = stream.write(format_response(resp))
+        }
+    }
+    let _ = stream.close()
+}
+
+// --- Main server ---
+fn main() -> int {
+    let listener = try TcpListener.bind("0.0.0.0:8080")
+    println("Server running on port 8080...")
+
+    // --- Channel for task scheduling (optional) ---
+    let ch: Channel[TcpStream] = Channel()
+
+    // Spawn worker pool
+    let worker_count = 4
+    for _ in 0..worker_count {
+        spawn {
+            for stream in ch {
+                handle_client(stream)
+            }
+        }
+    }
+
+    // Accept loop
+    loop {
+        match listener.accept() {
+            ok(stream) => {
+                // Send to worker pool
+                ch.send(stream)
+            }
+            err(e) => {
+                println("Accept error: ".concat(e.to_string()))
+            }
+        }
+    }
+
+    await scope // wait for all tasks (never reached in this simple server)
+    return 0
+}
+```
+
+---
+
+### ✅ Key Features Demonstrated
+
+1. **Type safety**: `TcpStream`, `HttpRequest`, `HttpResponse` all typed. No raw pointers.
+2. **Concurrency**:
+
+   * Worker pool via `spawn` + `Channel`
+   * Structured concurrency with `scope`
+3. **Simplicity**:
+
+   * Minimal boilerplate, clear record types
+   * Easy-to-read routing logic
+4. **Performance-ready**:
+
+   * Stack-first allocation for requests
+   * Channels are lightweight
+   * Deterministic memory management
+5. **Extensible**:
+
+   * Can later plug SSL, async IO, logging, or advanced HTTP parsing
+
+---
+
