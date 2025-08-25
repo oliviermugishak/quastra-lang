@@ -1,5 +1,5 @@
-#ifndef QUASTRA_PARSER_H
-#define QUASTRA_PARSER_H
+#ifndef QUASTR_PARSER_H
+#define QUASTR_PARSER_H
 
 #include "lexer.h"
 
@@ -10,6 +10,8 @@ typedef enum {
     NODE_RETURN_STMT,       // A return statement
     NODE_BINARY_EXPR,       // A binary expression (e.g., 1 + 2)
     NODE_LITERAL_EXPR,      // A literal value (e.g., 42, "hello")
+    NODE_IDENTIFIER_EXPR,   // An identifier in an expression (e.g., `x`)
+    NODE_BLOCK,             // A block of statements enclosed in {}
 } ASTNodeType;
 
 // A generic struct to hold an AST node.
@@ -46,10 +48,21 @@ typedef struct ASTNode {
         struct {
             Token literal; // The token for the literal (e.g., 42, "hello")
         } literal_expr;
+
+        // Data for an identifier expression (e.g., `x`)
+        struct {
+            Token identifier;
+        } identifier_expr;
+
+        // Data for a block of statements
+        struct {
+            struct ASTNode** statements;
+            int count;
+        } block;
     };
 } ASTNode;
 
 // Our main parsing function.
 ASTNode* quastra_parse_program(Lexer* lexer);
 
-#endif // QUASTRA_PARSER_H
+#endif // QUASTR_PARSER_H

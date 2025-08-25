@@ -1,5 +1,5 @@
-#ifndef QUASTRA_LEXER_H
-#define QUASTRA_LEXER_H
+#ifndef QUASTR_LEXER_H
+#define QUASTR_LEXER_H
 
 #include "common.h"
 
@@ -58,6 +58,7 @@ typedef enum {
     TOKEN_BANG_EQUAL, // !=
     TOKEN_PLUS,
     TOKEN_MINUS,
+    TOKEN_MINUS_GREATER, // ->
     TOKEN_STAR, // *
     TOKEN_SLASH, // /
     TOKEN_LESS, // <
@@ -72,6 +73,8 @@ typedef enum {
     TOKEN_MINUS_ASSIGN, // -=
     TOKEN_STAR_ASSIGN, // *=
     TOKEN_SLASH_ASSIGN, // /=
+    TOKEN_CARET, // ^
+
     TOKEN_ERROR, // For unrecognized tokens
 } TokenType;
 
@@ -90,4 +93,4 @@ typedef struct {
 void quastra_lexer_init(Lexer* lexer, const char* source);
 Token quastra_lexer_scan_token(Lexer* lexer);
 
-#endif // QUASTRA_LEXER_H
+#endif // QUASTR_LEXER_H

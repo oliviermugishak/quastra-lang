@@ -1,9 +1,9 @@
 # Define our compiler and flags
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -g
+CC = g++
+CFLAGS = -Wall -Wextra -std=c++11 -g
 
 # Define the source and object files
-SRCS = src/main.c src/lexer.c src/parser.c src/banner.c
+SRCS = src/main.c src/lexer.c src/parser.c src/codegen.c
 OBJS = $(patsubst src/%.c, build/%.o, $(SRCS))
 
 # Define the executable name and output directory
@@ -25,3 +25,4 @@ build/%.o: src/%.c
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -f out out.cpp

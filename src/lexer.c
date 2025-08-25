@@ -1,3 +1,4 @@
+// file: src/lexer.c
 #include "lexer.h"
 
 static int is_alpha(char c) {
@@ -104,8 +105,12 @@ static TokenType check_keyword(const char* start, int length) {
     // Using a series of if-else checks, which is a simple approach.
     // For a larger language, a perfect hash function or a trie would be better.
     switch (start[0]) {
-        case 'a': if (length == 5) return memcmp(start, "await", 5) == 0 ? TOKEN_KEYWORD_AWAIT : TOKEN_IDENTIFIER; break;
-        case 'c': if (length == 5) return memcmp(start, "const", 5) == 0 ? TOKEN_KEYWORD_CONST : TOKEN_IDENTIFIER; break;
+        case 'a': 
+            if (length == 5) return memcmp(start, "await", 5) == 0 ? TOKEN_KEYWORD_AWAIT : TOKEN_IDENTIFIER; 
+            break;
+        case 'c': 
+            if (length == 5) return memcmp(start, "const", 5) == 0 ? TOKEN_KEYWORD_CONST : TOKEN_IDENTIFIER; 
+            break;
         case 'e':
             if (length == 4) return memcmp(start, "else", 4) == 0 ? TOKEN_KEYWORD_ELSE : TOKEN_IDENTIFIER;
             if (length == 6) return memcmp(start, "extend", 6) == 0 ? TOKEN_KEYWORD_EXTEND : TOKEN_IDENTIFIER;
@@ -119,7 +124,9 @@ static TokenType check_keyword(const char* start, int length) {
             if (length == 2) return memcmp(start, "in", 2) == 0 ? TOKEN_KEYWORD_IN : TOKEN_IDENTIFIER;
             if (length == 4) return memcmp(start, "impl", 4) == 0 ? TOKEN_KEYWORD_IMPL : TOKEN_IDENTIFIER;
             break;
-        case 'l': if (length == 3) return memcmp(start, "let", 3) == 0 ? TOKEN_KEYWORD_LET : TOKEN_IDENTIFIER; break;
+        case 'l': 
+            if (length == 3) return memcmp(start, "let", 3) == 0 ? TOKEN_KEYWORD_LET : TOKEN_IDENTIFIER; 
+            break;
         case 'm':
             if (length == 3) return memcmp(start, "mut", 3) == 0 ? TOKEN_KEYWORD_MUT : TOKEN_IDENTIFIER;
             if (length == 5) return memcmp(start, "match", 5) == 0 ? TOKEN_KEYWORD_MATCH : TOKEN_IDENTIFIER;
@@ -129,7 +136,10 @@ static TokenType check_keyword(const char* start, int length) {
             if (length == 3) return memcmp(start, "pub", 3) == 0 ? TOKEN_KEYWORD_PUB : TOKEN_IDENTIFIER;
             if (length == 8) return memcmp(start, "protocol", 8) == 0 ? TOKEN_KEYWORD_PROTOCOL : TOKEN_IDENTIFIER;
             break;
-        case 'r': if (length == 6) return memcmp(start, "return", 6) == 0 ? TOKEN_KEYWORD_RETURN : TOKEN_IDENTIFIER; break;
+        case 'r': 
+            if (length == 6) return memcmp(start, "return", 6) == 0 ? TOKEN_KEYWORD_RETURN : TOKEN_IDENTIFIER; 
+            if (length == 6) return memcmp(start, "record", 6) == 0 ? TOKEN_KEYWORD_RECORD : TOKEN_IDENTIFIER; 
+            break;
         case 's': 
             if (length == 5) return memcmp(start, "scope", 5) == 0 ? TOKEN_KEYWORD_SCOPE : TOKEN_IDENTIFIER; 
             if (length == 5) return memcmp(start, "spawn", 5) == 0 ? TOKEN_KEYWORD_SPAWN : TOKEN_IDENTIFIER; 
@@ -143,9 +153,12 @@ static TokenType check_keyword(const char* start, int length) {
             if (length == 6) return memcmp(start, "unsafe", 6) == 0 ? TOKEN_KEYWORD_UNSAFE : TOKEN_IDENTIFIER;
             if (length == 5) return memcmp(start, "using", 5) == 0 ? TOKEN_KEYWORD_USING : TOKEN_IDENTIFIER;
             break;
-        case 'w': if (length == 5) return memcmp(start, "while", 5) == 0 ? TOKEN_KEYWORD_WHILE : TOKEN_IDENTIFIER; break;
-        case 'y': if (length == 5) return memcmp(start, "yield", 5) == 0 ? TOKEN_KEYWORD_YIELD : TOKEN_IDENTIFIER; break;
-       
+        case 'w': 
+            if (length == 5) return memcmp(start, "while", 5) == 0 ? TOKEN_KEYWORD_WHILE : TOKEN_IDENTIFIER; 
+            break;
+        case 'y': 
+            if (length == 5) return memcmp(start, "yield", 5) == 0 ? TOKEN_KEYWORD_YIELD : TOKEN_IDENTIFIER; 
+            break;
     }
     return TOKEN_IDENTIFIER;
 }
@@ -194,25 +207,16 @@ Token quastra_lexer_scan_token(Lexer* lexer) {
         case '=': return make_token(lexer, match(lexer, '=') ? TOKEN_EQUAL : TOKEN_ASSIGN);
         case '!': return make_token(lexer, match(lexer, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '+': return make_token(lexer, match(lexer, '=') ? TOKEN_PLUS_ASSIGN : TOKEN_PLUS);
-        case '-': return make_token(lexer, match(lexer, '=') ? TOKEN_MINUS_ASSIGN : TOKEN_MINUS);
+        case '-': return make_token(lexer, match(lexer, '>') ? TOKEN_MINUS_GREATER : TOKEN_MINUS);
         case '*': return make_token(lexer, match(lexer, '=') ? TOKEN_STAR_ASSIGN : TOKEN_STAR);
         case '/': return make_token(lexer, match(lexer, '=') ? TOKEN_SLASH_ASSIGN : TOKEN_SLASH);
         case '<': return make_token(lexer, match(lexer, '=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
         case '>': return make_token(lexer, match(lexer, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
         case '|': return make_token(lexer, match(lexer, '|') ? TOKEN_PIPE_PIPE : TOKEN_PIPE);
         case '&': return make_token(lexer, match(lexer, '&') ? TOKEN_AMPERSAND_AMPERSAND : TOKEN_AMPERSAND);
-        case '`': // This is a placeholder for ` (backtick) for single-line comments in some languages
-            if (peek_next(lexer) == '`' && peek_next(lexer) == '`' ) {
-                while(peek(lexer) != '`' && !is_at_end(lexer)) {
-                    advance(lexer);
-                }
-            } else {
-                 return error_token(lexer, "Unexpected character.");
-            }
-            break;
+        case '^': return make_token(lexer, TOKEN_CARET);
         default:
             return error_token(lexer, "Unexpected character.");
     }
-
     return make_token(lexer, TOKEN_ERROR);
 }

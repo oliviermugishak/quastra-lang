@@ -1,7 +1,8 @@
+// file: src/main.c
 #include "lexer.h"
 #include "parser.h"
+#include "codegen.h"
 #include "common.h"
-#include "banner.h"
 
 // A helper function to print the AST for debugging.
 void print_ast(ASTNode* node, int indent) {
@@ -15,6 +16,10 @@ void print_ast(ASTNode* node, int indent) {
             printf("Function: %.*s\n", node->fn_decl.name.length, node->fn_decl.name.lexeme);
             print_ast(node->fn_decl.body, indent + 1);
             break;
+        case NODE_VAR_DECL:
+            printf("Variable Declaration: %.*s\n", node->var_decl.name.length, node->var_decl.name.lexeme);
+            print_ast(node->var_decl.initializer, indent + 1);
+            break;
         case NODE_RETURN_STMT:
             printf("Return Statement\n");
             print_ast(node->return_stmt.value, indent + 1);
@@ -26,6 +31,15 @@ void print_ast(ASTNode* node, int indent) {
             break;
         case NODE_LITERAL_EXPR:
             printf("Literal: %.*s\n", node->literal_expr.literal.length, node->literal_expr.literal.lexeme);
+            break;
+        case NODE_IDENTIFIER_EXPR:
+            printf("Identifier: %.*s\n", node->identifier_expr.identifier.length, node->identifier_expr.identifier.lexeme);
+            break;
+        case NODE_BLOCK:
+            printf("Block\n");
+            for (int i = 0; i < node->block.count; i++) {
+                print_ast(node->block.statements[i], indent + 1);
+            }
             break;
         default:
             printf("Unknown Node Type: %d\n", node->type);
@@ -67,10 +81,6 @@ char* read_file(const char* path) {
 
 // Main function for the compiler.
 int main(int argc, const char* argv[]) {
-
-    // Call the function to print the banner
-    printBanner();
-
     if (argc != 2) {
         fprintf(stderr, "Usage: quastra <file_path>\n");
         exit(64);
@@ -81,17 +91,33 @@ int main(int argc, const char* argv[]) {
         exit(65);
     }
 
+    // Phase 1: Lexing and Parsing
     Lexer lexer;
     quastra_lexer_init(&lexer, source);
-
     ASTNode* root_node = quastra_parse_program(&lexer);
-    
-    printf("--- AST --- \n");
-    print_ast(root_node, 0);
+    free(source); // We're done with the source code string.
 
-    // Free resources.
-    // TODO: Implement a proper memory deallocator for the AST.
-    free(source);
+    // Phase 2: Code Generation
+    FILE* output_file = fopen("out.cpp", "w");
+    if (output_file == NULL) {
+        fprintf(stderr, "Could not create temporary file.\n");
+        exit(1);
+    }
+    quastra_codegen(root_node, output_file);
+    fclose(output_file);
+
+    // Phase 3: Compiling the C++ code using g++
+    char command[512];
+    sprintf(command, "g++ -o %s %s", "out", "out.cpp");
+    printf("Compiling with C++ compiler: %s\n", command);
+    int compile_result = system(command);
+
+    if (compile_result == 0) {
+        printf("Successfully compiled and created executable 'out'.\n");
+    } else {
+        fprintf(stderr, "C++ compilation failed.\n");
+    }
     
-    return 0;
+    // TODO: Free the AST nodes to prevent memory leaks.
+    return compile_result;
 }
