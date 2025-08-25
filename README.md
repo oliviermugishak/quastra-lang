@@ -1,8 +1,3 @@
-Absolutely! Here's a clean and compelling `README.md` tailored for GitHub, designed to showcase your Zen language project, its purpose, why others should contribute, and a personal touch from you as the developer:
-
----
-
-```markdown
 # 🧘 Zen Language
 
 Zen is a modern systems programming language built for clarity, performance, and control. It’s designed to empower developers with low-level capabilities while maintaining a clean, expressive syntax. Zen is multi-paradigm, blending functional pipelines, object-style methods, and data-oriented layouts—all without the legacy baggage.
