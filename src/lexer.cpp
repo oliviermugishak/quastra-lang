@@ -1,15 +1,16 @@
-// file: src/lexer.c
+// file: src/lexer.cpp
 #include "lexer.h"
+#include <cstring>
 
-static int is_alpha(char c) {
+static bool is_alpha(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-static int is_digit(char c) {
+static bool is_digit(char c) {
     return c >= '0' && c <= '9';
 }
 
-static int is_at_end(Lexer* lexer) {
+static bool is_at_end(Lexer* lexer) {
     return lexer->source[lexer->current] == '\0';
 }
 
@@ -29,25 +30,24 @@ static char advance(Lexer* lexer) {
 }
 
 // Consumes a character if it matches the expected one.
-static int match(Lexer* lexer, char expected) {
-    if (is_at_end(lexer)) return 0;
-    if (lexer->source[lexer->current] != expected) return 0;
+static bool match(Lexer* lexer, char expected) {
+    if (is_at_end(lexer)) return false;
+    if (lexer->source[lexer->current] != expected) return false;
     lexer->current++;
-    return 1;
+    return true;
 }
 
 static Token make_token(Lexer* lexer, TokenType type) {
-    return (Token){
+    return {
         .type = type,
         .lexeme = &lexer->source[lexer->start],
-        .length = lexer->current - lexer->start
+        .length = (int)(lexer->current - lexer->start)
     };
 }
 
 static Token error_token(Lexer* lexer, const char* message) {
-    // In a real compiler, we would report a more detailed error.
     fprintf(stderr, "Lexer Error: %s at position %zu\n", message, lexer->start);
-    return (Token){.type = TOKEN_ERROR, .lexeme = message, .length = (int)strlen(message)};
+    return {.type = TOKEN_ERROR, .lexeme = message, .length = (int)strlen(message)};
 }
 
 static void skip_whitespace(Lexer* lexer) {
@@ -66,7 +66,7 @@ static void skip_whitespace(Lexer* lexer) {
                         advance(lexer);
                     }
                 } else {
-                    return; // Not a comment, so we can't skip it.
+                    return;
                 }
                 break;
             default:
@@ -82,7 +82,7 @@ static Token string(Lexer* lexer) {
     if (is_at_end(lexer)) {
         return error_token(lexer, "Unterminated string.");
     }
-    advance(lexer); // Consume the closing quote.
+    advance(lexer);
     return make_token(lexer, TOKEN_STRING_LITERAL);
 }
 
@@ -91,7 +91,7 @@ static Token number(Lexer* lexer) {
         advance(lexer);
     }
     if (peek(lexer) == '.' && is_digit(peek_next(lexer))) {
-        advance(lexer); // Consume the dot.
+        advance(lexer);
         while (is_digit(peek(lexer))) {
             advance(lexer);
         }
@@ -100,64 +100,61 @@ static Token number(Lexer* lexer) {
     return make_token(lexer, TOKEN_INT_LITERAL);
 }
 
-// This function is the keyword lookup.
 static TokenType check_keyword(const char* start, int length) {
-    // Using a series of if-else checks, which is a simple approach.
-    // For a larger language, a perfect hash function or a trie would be better.
     switch (start[0]) {
         case 'a': 
-            if (length == 5) return memcmp(start, "await", 5) == 0 ? TOKEN_KEYWORD_AWAIT : TOKEN_IDENTIFIER; 
+            if (length == 5) return strncmp(start, "await", 5) == 0 ? TOKEN_KEYWORD_AWAIT : TOKEN_IDENTIFIER; 
             break;
         case 'c': 
-            if (length == 5) return memcmp(start, "const", 5) == 0 ? TOKEN_KEYWORD_CONST : TOKEN_IDENTIFIER; 
+            if (length == 5) return strncmp(start, "const", 5) == 0 ? TOKEN_KEYWORD_CONST : TOKEN_IDENTIFIER; 
             break;
         case 'e':
-            if (length == 4) return memcmp(start, "else", 4) == 0 ? TOKEN_KEYWORD_ELSE : TOKEN_IDENTIFIER;
-            if (length == 6) return memcmp(start, "extend", 6) == 0 ? TOKEN_KEYWORD_EXTEND : TOKEN_IDENTIFIER;
+            if (length == 4) return strncmp(start, "else", 4) == 0 ? TOKEN_KEYWORD_ELSE : TOKEN_IDENTIFIER;
+            if (length == 6) return strncmp(start, "extend", 6) == 0 ? TOKEN_KEYWORD_EXTEND : TOKEN_IDENTIFIER;
             break;
         case 'f':
-            if (length == 2) return memcmp(start, "fn", 2) == 0 ? TOKEN_KEYWORD_FN : TOKEN_IDENTIFIER;
-            if (length == 3) return memcmp(start, "for", 3) == 0 ? TOKEN_KEYWORD_FOR : TOKEN_IDENTIFIER;
+            if (length == 2) return strncmp(start, "fn", 2) == 0 ? TOKEN_KEYWORD_FN : TOKEN_IDENTIFIER;
+            if (length == 3) return strncmp(start, "for", 3) == 0 ? TOKEN_KEYWORD_FOR : TOKEN_IDENTIFIER;
             break;
         case 'i':
-            if (length == 2) return memcmp(start, "if", 2) == 0 ? TOKEN_KEYWORD_IF : TOKEN_IDENTIFIER;
-            if (length == 2) return memcmp(start, "in", 2) == 0 ? TOKEN_KEYWORD_IN : TOKEN_IDENTIFIER;
-            if (length == 4) return memcmp(start, "impl", 4) == 0 ? TOKEN_KEYWORD_IMPL : TOKEN_IDENTIFIER;
+            if (length == 2) return strncmp(start, "if", 2) == 0 ? TOKEN_KEYWORD_IF : TOKEN_IDENTIFIER;
+            if (length == 2) return strncmp(start, "in", 2) == 0 ? TOKEN_KEYWORD_IN : TOKEN_IDENTIFIER;
+            if (length == 4) return strncmp(start, "impl", 4) == 0 ? TOKEN_KEYWORD_IMPL : TOKEN_IDENTIFIER;
             break;
         case 'l': 
-            if (length == 3) return memcmp(start, "let", 3) == 0 ? TOKEN_KEYWORD_LET : TOKEN_IDENTIFIER; 
+            if (length == 3) return strncmp(start, "let", 3) == 0 ? TOKEN_KEYWORD_LET : TOKEN_IDENTIFIER; 
             break;
         case 'm':
-            if (length == 3) return memcmp(start, "mut", 3) == 0 ? TOKEN_KEYWORD_MUT : TOKEN_IDENTIFIER;
-            if (length == 5) return memcmp(start, "match", 5) == 0 ? TOKEN_KEYWORD_MATCH : TOKEN_IDENTIFIER;
-            if (length == 6) return memcmp(start, "module", 6) == 0 ? TOKEN_KEYWORD_MODULE : TOKEN_IDENTIFIER;
+            if (length == 3) return strncmp(start, "mut", 3) == 0 ? TOKEN_KEYWORD_MUT : TOKEN_IDENTIFIER;
+            if (length == 5) return strncmp(start, "match", 5) == 0 ? TOKEN_KEYWORD_MATCH : TOKEN_IDENTIFIER;
+            if (length == 6) return strncmp(start, "module", 6) == 0 ? TOKEN_KEYWORD_MODULE : TOKEN_IDENTIFIER;
             break;
         case 'p':
-            if (length == 3) return memcmp(start, "pub", 3) == 0 ? TOKEN_KEYWORD_PUB : TOKEN_IDENTIFIER;
-            if (length == 8) return memcmp(start, "protocol", 8) == 0 ? TOKEN_KEYWORD_PROTOCOL : TOKEN_IDENTIFIER;
+            if (length == 3) return strncmp(start, "pub", 3) == 0 ? TOKEN_KEYWORD_PUB : TOKEN_IDENTIFIER;
+            if (length == 8) return strncmp(start, "protocol", 8) == 0 ? TOKEN_KEYWORD_PROTOCOL : TOKEN_IDENTIFIER;
             break;
         case 'r': 
-            if (length == 6) return memcmp(start, "return", 6) == 0 ? TOKEN_KEYWORD_RETURN : TOKEN_IDENTIFIER; 
-            if (length == 6) return memcmp(start, "record", 6) == 0 ? TOKEN_KEYWORD_RECORD : TOKEN_IDENTIFIER; 
+            if (length == 6) return strncmp(start, "return", 6) == 0 ? TOKEN_KEYWORD_RETURN : TOKEN_IDENTIFIER; 
+            if (length == 6) return strncmp(start, "record", 6) == 0 ? TOKEN_KEYWORD_RECORD : TOKEN_IDENTIFIER; 
             break;
         case 's': 
-            if (length == 5) return memcmp(start, "scope", 5) == 0 ? TOKEN_KEYWORD_SCOPE : TOKEN_IDENTIFIER; 
-            if (length == 5) return memcmp(start, "spawn", 5) == 0 ? TOKEN_KEYWORD_SPAWN : TOKEN_IDENTIFIER; 
+            if (length == 5) return strncmp(start, "scope", 5) == 0 ? TOKEN_KEYWORD_SCOPE : TOKEN_IDENTIFIER; 
+            if (length == 5) return strncmp(start, "spawn", 5) == 0 ? TOKEN_KEYWORD_SPAWN : TOKEN_IDENTIFIER; 
             break;
         case 't':
-            if (length == 3) return memcmp(start, "try", 3) == 0 ? TOKEN_KEYWORD_TRY : TOKEN_IDENTIFIER;
-            if (length == 4) return memcmp(start, "type", 4) == 0 ? TOKEN_KEYWORD_TYPE : TOKEN_IDENTIFIER;
+            if (length == 3) return strncmp(start, "try", 3) == 0 ? TOKEN_KEYWORD_TRY : TOKEN_IDENTIFIER;
+            if (length == 4) return strncmp(start, "type", 4) == 0 ? TOKEN_KEYWORD_TYPE : TOKEN_IDENTIFIER;
             break;
         case 'u':
-            if (length == 3) return memcmp(start, "use", 3) == 0 ? TOKEN_KEYWORD_USE : TOKEN_IDENTIFIER;
-            if (length == 6) return memcmp(start, "unsafe", 6) == 0 ? TOKEN_KEYWORD_UNSAFE : TOKEN_IDENTIFIER;
-            if (length == 5) return memcmp(start, "using", 5) == 0 ? TOKEN_KEYWORD_USING : TOKEN_IDENTIFIER;
+            if (length == 3) return strncmp(start, "use", 3) == 0 ? TOKEN_KEYWORD_USE : TOKEN_IDENTIFIER;
+            if (length == 6) return strncmp(start, "unsafe", 6) == 0 ? TOKEN_KEYWORD_UNSAFE : TOKEN_IDENTIFIER;
+            if (length == 5) return strncmp(start, "using", 5) == 0 ? TOKEN_KEYWORD_USING : TOKEN_IDENTIFIER;
             break;
         case 'w': 
-            if (length == 5) return memcmp(start, "while", 5) == 0 ? TOKEN_KEYWORD_WHILE : TOKEN_IDENTIFIER; 
+            if (length == 5) return strncmp(start, "while", 5) == 0 ? TOKEN_KEYWORD_WHILE : TOKEN_IDENTIFIER; 
             break;
         case 'y': 
-            if (length == 5) return memcmp(start, "yield", 5) == 0 ? TOKEN_KEYWORD_YIELD : TOKEN_IDENTIFIER; 
+            if (length == 5) return strncmp(start, "yield", 5) == 0 ? TOKEN_KEYWORD_YIELD : TOKEN_IDENTIFIER; 
             break;
     }
     return TOKEN_IDENTIFIER;
@@ -167,7 +164,7 @@ static Token identifier(Lexer* lexer) {
     while (is_alpha(peek(lexer)) || is_digit(peek(lexer))) {
         advance(lexer);
     }
-    int length = lexer->current - lexer->start;
+    int length = (int)(lexer->current - lexer->start);
     TokenType type = check_keyword(&lexer->source[lexer->start], length);
     return make_token(lexer, type);
 }
