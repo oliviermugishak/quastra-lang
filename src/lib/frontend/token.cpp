@@ -8,6 +8,9 @@ const char* to_string(TokenType type) {
         case TokenType::Fn: return "Fn";
         case TokenType::Return: return "Return";
         case TokenType::Let: return "Let";
+        case TokenType::If: return "If";
+        case TokenType::Else: return "Else";
+        case TokenType::While: return "While";
         case TokenType::Identifier: return "Identifier";
         case TokenType::TypeIdentifier: return "TypeIdentifier";
         case TokenType::IntLiteral: return "IntLiteral";
