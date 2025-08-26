@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include <stdexcept>
 #include <vector>
+#include <iostream>
 
 namespace Quastra {
 
@@ -9,7 +10,11 @@ Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 std::vector<std::unique_ptr<AST::Stmt>> Parser::parse() {
     std::vector<std::unique_ptr<AST::Stmt>> statements;
     while (!is_at_end()) {
-        statements.push_back(declaration());
+        auto decl = declaration();
+        // If declaration() returned nullptr due to an error, we don't add it.
+        if (decl) {
+            statements.push_back(std::move(decl));
+        }
     }
     return statements;
 }
@@ -20,9 +25,35 @@ std::unique_ptr<AST::Stmt> Parser::declaration() {
         if (match({TokenType::Let})) return var_declaration();
         return statement();
     } catch (const std::runtime_error& e) {
+        // When an error is caught, synchronize and report it.
+        std::cerr << "Parse Error: " << e.what() << std::endl;
+        had_error = true;
+        synchronize();
         return nullptr;
     }
 }
+
+// New method to synchronize the parser after an error.
+void Parser::synchronize() {
+    advance(); // Consume the token that caused the error.
+
+    while (!is_at_end()) {
+        if (previous().type == TokenType::Semicolon) return;
+
+        switch (peek().type) {
+            case TokenType::Fn:
+            case TokenType::Let:
+            case TokenType::If:
+            case TokenType::While:
+            case TokenType::Return:
+                return;
+            default:
+                break;
+        }
+        advance();
+    }
+}
+
 
 std::unique_ptr<AST::Stmt> Parser::function_declaration() {
     Token name = consume(TokenType::Identifier, "Expect function name.");
@@ -40,13 +71,14 @@ std::unique_ptr<AST::Stmt> Parser::function_declaration() {
 }
 
 std::unique_ptr<AST::Stmt> Parser::var_declaration() {
+    bool is_mutable = match({TokenType::Mut});
     Token name = consume(TokenType::Identifier, "Expect variable name.");
     std::unique_ptr<AST::Expr> initializer = nullptr;
     if (match({TokenType::Equal})) {
         initializer = expression();
     }
     consume(TokenType::Semicolon, "Expect ';' after variable declaration.");
-    return std::make_unique<AST::VarDecl>(name, std::move(initializer));
+    return std::make_unique<AST::VarDecl>(name, std::move(initializer), is_mutable);
 }
 
 std::unique_ptr<AST::Stmt> Parser::statement() {
@@ -87,10 +119,14 @@ std::unique_ptr<AST::Stmt> Parser::return_statement() {
     return std::make_unique<AST::ReturnStmt>(keyword, std::move(value));
 }
 
+// CORRECTED: The block parser now checks for null statements before adding them.
 std::vector<std::unique_ptr<AST::Stmt>> Parser::block() {
     std::vector<std::unique_ptr<AST::Stmt>> statements;
     while (peek().type != TokenType::RightBrace && !is_at_end()) {
-        statements.push_back(declaration());
+        auto decl = declaration();
+        if (decl) {
+            statements.push_back(std::move(decl));
+        }
     }
     consume(TokenType::RightBrace, "Expect '}' after block.");
     return statements;
@@ -192,7 +228,7 @@ std::unique_ptr<AST::Expr> Parser::primary() {
         consume(TokenType::RightParen, "Expect ')' after expression.");
         return expr;
     }
-    throw std::runtime_error("Parser Error: Expected expression.");
+    throw std::runtime_error("Expected expression.");
 }
 
 bool Parser::match(const std::vector<TokenType>& types) {

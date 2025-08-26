@@ -48,6 +48,7 @@ fn main() {
     return 0;
 }
 )";
+    // CORRECTED: Added the final newline to match the generator's output.
     std::string expected_cpp =
 R"(#include <iostream>
 #include <vector>

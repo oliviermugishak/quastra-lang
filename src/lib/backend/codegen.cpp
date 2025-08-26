@@ -46,7 +46,10 @@ void CodeGen::visit(const AST::Block& stmt) {
     output << "{\n";
     indent_level++;
     for (const auto& statement : stmt.statements) {
-        generate_code(*statement);
+        // CORRECTED: Add safety check for null statements from parser recovery.
+        if (statement) {
+            generate_code(*statement);
+        }
     }
     indent_level--;
     indent();
@@ -58,7 +61,12 @@ void CodeGen::visit(const AST::IfStmt& stmt) {
     output << "if (";
     generate_code(*stmt.condition);
     output << ") ";
-    generate_code(*stmt.then_branch);
+    if (stmt.then_branch) {
+        generate_code(*stmt.then_branch);
+    } else {
+        output << "{}\n";
+    }
+
     if (stmt.else_branch) {
         indent();
         output << "else ";
@@ -71,11 +79,14 @@ void CodeGen::visit(const AST::WhileStmt& stmt) {
     output << "while (";
     generate_code(*stmt.condition);
     output << ") ";
-    generate_code(*stmt.body);
+    if (stmt.body) {
+        generate_code(*stmt.body);
+    } else {
+        output << "{}\n";
+    }
 }
 
 void CodeGen::visit(const AST::FunctionStmt& stmt) {
-    // Special case for main function to ensure correct return type.
     if (stmt.name.lexeme == "main") {
         output << "int " << stmt.name.lexeme << "(";
     } else {
@@ -87,8 +98,17 @@ void CodeGen::visit(const AST::FunctionStmt& stmt) {
         if (i < stmt.params.size() - 1) output << ", ";
     }
     output << ") ";
-    generate_code(AST::Block(std::move(const_cast<std::vector<std::unique_ptr<AST::Stmt>>&>(stmt.body))));
-    output << "\n";
+
+    output << "{\n";
+    indent_level++;
+    for (const auto& statement : stmt.body) {
+        if (statement) {
+            generate_code(*statement);
+        }
+    }
+    indent_level--;
+    indent();
+    output << "}\n\n";
 }
 
 void CodeGen::visit(const AST::ReturnStmt& stmt) {

@@ -1,0 +1,16 @@
+// test_recursion.q
+// Tests recursive function calls.
+
+fn factorial(n) {
+    if (n < 2) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fn main() {
+    // This will compute 5! = 120
+    let result = factorial(5);
+
+    return 0;
+}

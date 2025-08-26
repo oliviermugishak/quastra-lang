@@ -1,0 +1,22 @@
+// test_control_flow.q
+// Tests loops, conditionals, and arithmetic.
+
+fn main() {
+    let mut i = 0;
+    let mut total = 0;
+
+    while (i < 10) {
+        if (i == 5) {
+            // Skip this iteration
+            i = i + 1;
+        } else {
+            total = total + i;
+        }
+        i = i + 1
+    }
+
+    // After the loop, total should be the sum of 0..9 minus 5, which is 40.
+    let final_check = total == 40;
+
+    return 0;
+}
