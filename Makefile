@@ -35,7 +35,7 @@ MAIN_OBJECT = $(addprefix $(OBJ_DIR)/, $(MAIN_SOURCE:.cpp=.o))
 TEST_OBJECTS = $(addprefix $(OBJ_DIR)/, $(TEST_SOURCES:.cpp=.o))
 
 # --- Executables ---
-COMPILER_EXECUTABLE = $(BIN_DIR)/quastra-compiler
+COMPILER_EXECUTABLE = $(BIN_DIR)/quastra
 TEST_EXECUTABLE = $(BIN_DIR)/run_tests
 
 # Default target builds the compiler.

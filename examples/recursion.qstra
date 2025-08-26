@@ -1,4 +1,4 @@
-// test_recursion.q
+// test_recursion.qstra
 // Tests recursive function calls.
 
 fn factorial(n) {

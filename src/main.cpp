@@ -46,7 +46,7 @@ static void run(const std::string& source) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        std::cerr << "Usage: quastra-compiler <file.q>" << std::endl;
+        std::cerr << "Usage: quastra-compiler <file.qstra>" << std::endl;
         return 64; // Command line usage error
     }
 
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Quastra Compiler v1.0.0\n"
           << "Copyright (c) 2025 Quastra Systems\n"
           << "Licensed under the MIT License\n"
-          << "This compiler translates Quastra source files (.q) into C++ code.\n"
+          << "This compiler translates Quastra source files (.qstra) into C++ code.\n"
           << "For documentation and updates, visit: https://quastra.dev\n";
 
         return 0;

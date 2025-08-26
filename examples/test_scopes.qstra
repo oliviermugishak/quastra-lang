@@ -1,4 +1,4 @@
-// test_scopes.q
+// test_scopes.qstra
 // Tests variable scoping, shadowing, and mutability.
 
 fn main() {
