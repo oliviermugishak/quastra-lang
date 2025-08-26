@@ -58,12 +58,18 @@ struct Expr {
 
 // --- Statement Nodes ---
 
+// Represents a variable declaration: `let mut x = 5;`
 struct VarDecl : Stmt {
     Token name;
     std::unique_ptr<Expr> initializer;
-    VarDecl(Token name, std::unique_ptr<Expr> initializer)
-        : name(std::move(name)), initializer(std::move(initializer)) {}
-    void accept(StmtVisitor& visitor) const override { visitor.visit(*this); }
+    bool is_mutable; // Flag to track mutability
+
+    VarDecl(Token name, std::unique_ptr<Expr> initializer, bool is_mutable)
+        : name(std::move(name)), initializer(std::move(initializer)), is_mutable(is_mutable) {}
+
+    void accept(StmtVisitor& visitor) const override {
+        visitor.visit(*this);
+    }
 };
 
 struct ExprStmt : Stmt {
@@ -83,21 +89,20 @@ struct Block : Stmt {
 struct IfStmt : Stmt {
     std::unique_ptr<Expr> condition;
     std::unique_ptr<Stmt> then_branch;
-    std::unique_ptr<Stmt> else_branch;
-    IfStmt(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> t, std::unique_ptr<Stmt> e)
-        : condition(std::move(c)), then_branch(std::move(t)), else_branch(std::move(e)) {}
+    std::unique_ptr<Stmt> else_branch; // Can be nullptr
+    IfStmt(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> then_branch, std::unique_ptr<Stmt> else_branch)
+        : condition(std::move(condition)), then_branch(std::move(then_branch)), else_branch(std::move(else_branch)) {}
     void accept(StmtVisitor& visitor) const override { visitor.visit(*this); }
 };
 
 struct WhileStmt : Stmt {
     std::unique_ptr<Expr> condition;
     std::unique_ptr<Stmt> body;
-    WhileStmt(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> b)
-        : condition(std::move(c)), body(std::move(b)) {}
+    WhileStmt(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> body)
+        : condition(std::move(condition)), body(std::move(body)) {}
     void accept(StmtVisitor& visitor) const override { visitor.visit(*this); }
 };
 
-// Represents a function declaration.
 struct FunctionStmt : Stmt {
     Token name;
     std::vector<Token> params;
@@ -107,7 +112,6 @@ struct FunctionStmt : Stmt {
     void accept(StmtVisitor& visitor) const override { visitor.visit(*this); }
 };
 
-// Represents a return statement.
 struct ReturnStmt : Stmt {
     Token keyword;
     std::unique_ptr<Expr> value;
@@ -154,7 +158,6 @@ struct Assign : Expr {
     void accept(ExprVisitor& visitor) const override { visitor.visit(*this); }
 };
 
-// Represents a function call.
 struct Call : Expr {
     std::unique_ptr<Expr> callee;
     Token paren; // The closing ')' for error reporting.

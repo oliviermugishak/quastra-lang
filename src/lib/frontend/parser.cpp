@@ -39,14 +39,18 @@ std::unique_ptr<AST::Stmt> Parser::function_declaration() {
     return std::make_unique<AST::FunctionStmt>(name, std::move(parameters), std::move(body));
 }
 
+// Updated to handle `let mut ...`
 std::unique_ptr<AST::Stmt> Parser::var_declaration() {
+    bool is_mutable = match({TokenType::Mut});
     Token name = consume(TokenType::Identifier, "Expect variable name.");
+
     std::unique_ptr<AST::Expr> initializer = nullptr;
     if (match({TokenType::Equal})) {
         initializer = expression();
     }
+
     consume(TokenType::Semicolon, "Expect ';' after variable declaration.");
-    return std::make_unique<AST::VarDecl>(name, std::move(initializer));
+    return std::make_unique<AST::VarDecl>(name, std::move(initializer), is_mutable);
 }
 
 std::unique_ptr<AST::Stmt> Parser::statement() {

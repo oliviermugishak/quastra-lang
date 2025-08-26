@@ -1,5 +1,6 @@
-# Makefile for the Quastra Compiler Project
+# Makefile for the Quastra Compiler Project (System gtest version)
 
+# Compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -g
 INCLUDES = -I./src
@@ -12,18 +13,23 @@ OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
 
 # VPATH tells 'make' where to look for source files.
-VPATH = $(shell find src -type d) tests
+VPATH = $(shell find src/lib tests src/lib/semantic -type d)
 
 # --- Source Files ---
-# Find all library source files
-LIB_SOURCES = $(notdir $(shell find src/lib -name '*.cpp'))
-# The main compiler driver source
+# Find all library and main source files automatically.
+SOURCES = $(notdir $(shell find src/lib src/lib/semantic -name '*.cpp'))
 MAIN_SOURCE = main.cpp
-# All test source files
-TEST_SOURCES = $(notdir $(shell find tests -name '*.cpp'))
+
+# Explicitly list all test source files for a more robust build.
+TEST_SOURCES = \
+    test_lexer.cpp \
+    test_parser.cpp \
+    test_interpreter.cpp \
+    test_codegen.cpp \
+    test_type_checker.cpp
 
 # --- Object Files ---
-LIB_OBJECTS = $(addprefix $(OBJ_DIR)/, $(LIB_SOURCES:.cpp=.o))
+OBJECTS = $(addprefix $(OBJ_DIR)/, $(SOURCES:.cpp=.o))
 MAIN_OBJECT = $(addprefix $(OBJ_DIR)/, $(MAIN_SOURCE:.cpp=.o))
 TEST_OBJECTS = $(addprefix $(OBJ_DIR)/, $(TEST_SOURCES:.cpp=.o))
 
@@ -37,12 +43,12 @@ all: $(COMPILER_EXECUTABLE)
 # --- Build Rules ---
 
 # Rule to build the main compiler executable
-$(COMPILER_EXECUTABLE): $(MAIN_OBJECT) $(LIB_OBJECTS)
+$(COMPILER_EXECUTABLE): $(MAIN_OBJECT) $(OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
 
 # Rule to build the test executable
-$(TEST_EXECUTABLE): $(LIB_OBJECTS) $(TEST_OBJECTS)
+$(TEST_EXECUTABLE): $(OBJECTS) $(TEST_OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS) $(LIBS)
 

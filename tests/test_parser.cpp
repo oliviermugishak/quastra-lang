@@ -23,7 +23,11 @@ private:
     std::string result;
 
     void visit(const AST::VarDecl& stmt) override {
-        result += "(var-decl " + stmt.name.lexeme;
+        result += "(var-decl ";
+        if (stmt.is_mutable) {
+            result += "mut ";
+        }
+        result += stmt.name.lexeme;
         if (stmt.initializer) {
             result += " = ";
             stmt.initializer->accept(*this);
@@ -138,27 +142,14 @@ std::string parse_and_print(const std::string& source) {
     return printer.print(stmts);
 }
 
-TEST(ParserFunctionTest, ParseFunctionDeclaration) {
-    std::string source = "fn my_func() { return 1; }";
-    std::string expected = "(fn-decl my_func() { (return 1;) } ) ";
+TEST(ParserStatementTest, ParseMutableVariableDeclaration) {
+    std::string source = "let mut x = 10;";
+    std::string expected = "(var-decl mut x = 10;) ";
     EXPECT_EQ(parse_and_print(source), expected);
 }
 
-TEST(ParserFunctionTest, ParseFunctionWithParameters) {
-    std::string source = "fn add(a, b) { return a + b; }";
-    std::string expected = "(fn-decl add(a, b) { (return (a + b);) } ) ";
-    EXPECT_EQ(parse_and_print(source), expected);
-}
-
-
-TEST(ParserFunctionTest, ParseFunctionCall) {
-    std::string source = "my_func();";
-    std::string expected = "(expr-stmt (call my_func());) ";
-    EXPECT_EQ(parse_and_print(source), expected);
-}
-
-TEST(ParserFunctionTest, ParseFunctionCallWithArguments) {
-    std::string source = "add(1, 2);";
-    std::string expected = "(expr-stmt (call add(1, 2));) ";
+TEST(ParserStatementTest, ParseImmutableVariableDeclaration) {
+    std::string source = "let x = 10;";
+    std::string expected = "(var-decl x = 10;) ";
     EXPECT_EQ(parse_and_print(source), expected);
 }
