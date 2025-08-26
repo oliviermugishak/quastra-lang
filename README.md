@@ -34,7 +34,7 @@ We welcome contributions of all kinds: code, documentation, examples, tooling, a
 
 ## 👤 About the Developer
 
-Hi I am Olivier M, the creator of Quastra - a systems programmer with a love for clean abstractions and expressive code. I started this project to explore what a modern low-level language could look like if it were designed today, not 40 years ago. I believe in open collaboration, clear communication, and building tools that make developers feel powerful.
+Hi I am Olivier, the creator of Quastra - a systems programmer with a love for clean abstractions and expressive code. I started this project to explore what a modern low-level language could look like if it were designed today, not 40 years ago. I believe in open collaboration, clear communication, and building tools that make developers feel powerful.
 
 If you’re interested in contributing, collaborating, or just chatting about language design, feel free to reach out or open an issue. I’d love to hear from you.
 
