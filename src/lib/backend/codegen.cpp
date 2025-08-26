@@ -75,9 +75,13 @@ void CodeGen::visit(const AST::WhileStmt& stmt) {
 }
 
 void CodeGen::visit(const AST::FunctionStmt& stmt) {
-    // For now, all functions return auto and take auto parameters for simplicity.
-    // A future type-checking phase would make this more robust.
-    output << "auto " << stmt.name.lexeme << "(";
+    // Special case for main function to ensure correct return type.
+    if (stmt.name.lexeme == "main") {
+        output << "int " << stmt.name.lexeme << "(";
+    } else {
+        output << "auto " << stmt.name.lexeme << "(";
+    }
+
     for (size_t i = 0; i < stmt.params.size(); ++i) {
         output << "auto " << stmt.params[i].lexeme;
         if (i < stmt.params.size() - 1) output << ", ";

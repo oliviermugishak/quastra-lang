@@ -7,7 +7,6 @@
 using namespace Quastra;
 
 // Helper function to run the full lex->parse->generate pipeline.
-// Making it 'static' limits its scope to just this file, resolving the linker error.
 static std::string generate_cpp(const std::string& source) {
     Lexer lexer(source);
     auto tokens = lexer.scan_tokens();
@@ -20,14 +19,13 @@ static std::string generate_cpp(const std::string& source) {
 
 TEST(CodeGenTest, GeneratesWhileLoop) {
     std::string source = "let i = 0; while (i < 5) { i = i + 1; }";
-    // This test now needs to be wrapped in a main function to be valid Quastra code.
     std::string wrapped_source = "fn main() { " + source + " return 0; }";
 
     std::string expected_cpp =
 R"(#include <iostream>
 #include <vector>
 
-auto main() {
+int main() {
     auto i = 0;
     while ((i < 5)) {
         (i = (i + 1));
@@ -58,7 +56,7 @@ auto add(auto a, auto b) {
     return (a + b);
 }
 
-auto main() {
+int main() {
     auto result = add(5, 3);
     return 0;
 }
