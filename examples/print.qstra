@@ -1,0 +1,8 @@
+
+fn main() {
+    let a = 5;
+    println("Hello World!");
+    return 0;
+}
+
+fn println(s: string);

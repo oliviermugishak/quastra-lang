@@ -1,1 +1,2 @@
 *.qstra linguist-language=Quastra
+*/**/*.qstra linguist-language=Quastra
