@@ -9,7 +9,7 @@ namespace Quastra {
 // Enum for all possible token types in the Quastra language.
 enum class TokenType {
     // Keywords
-    Fn, Return, Let, Mut, If, Else, While, For, In,
+    Fn, Return, Let, Mut, If, Else, While, For, In, True, False,
     // Identifiers
     Identifier, TypeIdentifier,
     // Literals

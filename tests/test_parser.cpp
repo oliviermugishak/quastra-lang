@@ -6,6 +6,10 @@
 
 using namespace Quastra;
 
+// --- AST Visitor for Testing ---
+// This visitor converts a piece of the AST back into a string representation,
+// which is easy to verify in tests.
+
 class AstPrinter : public AST::ExprVisitor, public AST::StmtVisitor {
 public:
     std::string print(const std::vector<std::unique_ptr<AST::Stmt>>& stmts) {
@@ -22,8 +26,11 @@ private:
     std::string result;
 
     void visit(const AST::VarDecl& stmt) override {
-        result += "(var-decl " + stmt.name.lexeme + " = ";
-        stmt.initializer->accept(*this);
+        result += "(var-decl " + stmt.name.lexeme;
+        if (stmt.initializer) {
+            result += " = ";
+            stmt.initializer->accept(*this);
+        }
         result += ";) ";
     }
 
@@ -114,13 +121,51 @@ private:
     }
 };
 
+// Helper function to run the full lex->parse->print pipeline.
 std::string parse_and_print(const std::string& source) {
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
+
     AstPrinter printer;
     return printer.print(stmts);
+}
+
+TEST(ParserStatementTest, ParseVariableDeclaration) {
+    std::string source = "let x = 10;";
+    std::string expected = "(var-decl x = 10;) ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+TEST(ParserStatementTest, ParseAssignment) {
+    std::string source = "x = 20;";
+    std::string expected = "(expr-stmt (x = 20);) ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+TEST(ParserStatementTest, ParseBlockStatement) {
+    std::string source = "{ let a = 1; a = 2; }";
+    std::string expected = "{ (var-decl a = 1;) (expr-stmt (a = 2);) } ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+TEST(ParserControlFlowTest, ParseIfStatement) {
+    std::string source = "if (x > 1) y = 1;";
+    std::string expected = "(if (x > 1) (expr-stmt (y = 1);) ) ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+TEST(ParserControlFlowTest, ParseIfElseStatement) {
+    std::string source = "if (x == 1) y = 1; else y = 2;";
+    std::string expected = "(if (x == 1) (expr-stmt (y = 1);) else (expr-stmt (y = 2);) ) ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+TEST(ParserControlFlowTest, ParseWhileStatement) {
+    std::string source = "while (x < 10) x = x + 1;";
+    std::string expected = "(while (x < 10) (expr-stmt (x = (x + 1));) ) ";
+    EXPECT_EQ(parse_and_print(source), expected);
 }
 
 TEST(ParserFunctionTest, ParseFunctionDeclaration) {

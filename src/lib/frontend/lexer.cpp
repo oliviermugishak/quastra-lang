@@ -11,18 +11,87 @@ std::vector<Token> Lexer::scan_tokens() {
         start = current;
         scan_token();
     }
-
-    // Add one final EndOfFile token to signify completion.
     tokens.push_back({TokenType::EndOfFile, "", line});
     return tokens;
 }
 
-bool Lexer::is_at_end() {
-    return current >= source.length();
+bool Lexer::match(char expected) {
+    if (is_at_end()) return false;
+    if (source[current] != expected) return false;
+    current++;
+    return true;
 }
 
-char Lexer::advance() {
-    return source[current++];
+void Lexer::scan_token() {
+    char c = advance();
+    switch (c) {
+        case '(': add_token(TokenType::LeftParen); break;
+        case ')': add_token(TokenType::RightParen); break;
+        case '{': add_token(TokenType::LeftBrace); break;
+        case '}': add_token(TokenType::RightBrace); break;
+        case '+': add_token(TokenType::Plus); break;
+        case '*': add_token(TokenType::Star); break;
+        case ';': add_token(TokenType::Semicolon); break;
+        case '!': add_token(match('=') ? TokenType::BangEqual : TokenType::Bang); break;
+        case '=': add_token(match('=') ? TokenType::EqualEqual : TokenType::Equal); break;
+        case '<': add_token(match('=') ? TokenType::LessEqual : TokenType::Less); break;
+        case '>': add_token(match('=') ? TokenType::GreaterEqual : TokenType::Greater); break;
+        case '/':
+            if (match('/')) {
+                while (peek() != '\n' && !is_at_end()) advance();
+            } else {
+                add_token(TokenType::Slash);
+            }
+            break;
+        case '-':
+            if (match('>')) {
+                add_token(TokenType::Arrow);
+            } else {
+                add_token(TokenType::Minus);
+            }
+            break;
+        case ' ':
+        case '\r':
+        case '\t':
+            break;
+        case '\n':
+            line++;
+            break;
+        default:
+            if (std::isdigit(c)) {
+                number();
+            } else if (std::isalpha(c) || c == '_') {
+                identifier();
+            } else {
+                add_token(TokenType::Unknown);
+            }
+            break;
+    }
+}
+
+void Lexer::identifier() {
+    while (std::isalnum(peek()) || peek() == '_') advance();
+    std::string text = source.substr(start, current - start);
+    static const std::map<std::string, TokenType> keywords = {
+        {"fn", TokenType::Fn}, {"return", TokenType::Return},
+        {"let", TokenType::Let}, {"mut", TokenType::Mut},
+        {"if", TokenType::If}, {"else", TokenType::Else},
+        {"while", TokenType::While}, {"true", TokenType::True},
+        {"false", TokenType::False}, {"int", TokenType::TypeIdentifier},
+        {"string", TokenType::TypeIdentifier}, {"bool", TokenType::TypeIdentifier},
+        {"float", TokenType::TypeIdentifier},
+    };
+    auto it = keywords.find(text);
+    if (it != keywords.end()) {
+        add_token(it->second);
+    } else {
+        add_token(TokenType::Identifier);
+    }
+}
+
+void Lexer::number() {
+    while (std::isdigit(peek())) advance();
+    add_token(TokenType::IntLiteral);
 }
 
 char Lexer::peek() {
@@ -30,96 +99,17 @@ char Lexer::peek() {
     return source[current];
 }
 
-Token Lexer::make_token(TokenType type) {
-    return {type, source.substr(start, current - start), line};
+char Lexer::advance() {
+    return source[current++];
 }
 
-void Lexer::scan_token() {
-    char c = advance();
-    switch (c) {
-        // Single-character tokens
-        case '(': tokens.push_back(make_token(TokenType::LeftParen)); break;
-        case ')': tokens.push_back(make_token(TokenType::RightParen)); break;
-        case '{': tokens.push_back(make_token(TokenType::LeftBrace)); break;
-        case '}': tokens.push_back(make_token(TokenType::RightBrace)); break;
-        case '+': tokens.push_back(make_token(TokenType::Plus)); break;
-        case '*': tokens.push_back(make_token(TokenType::Star)); break;
-        case ';': tokens.push_back(make_token(TokenType::Semicolon)); break;
-        case '=': tokens.push_back(make_token(TokenType::Equal)); break;
-
-
-        // Handle '/' for division or comments
-        case '/':
-            if (peek() == '/') {
-                // A comment goes until the end of the line, so we skip it.
-                while (peek() != '\n' && !is_at_end()) advance();
-            } else {
-                tokens.push_back(make_token(TokenType::Slash));
-            }
-            break;
-
-        // Handle '-' for minus or arrow
-        case '-':
-            if (peek() == '>') {
-                advance(); // consume '>'
-                tokens.push_back(make_token(TokenType::Arrow));
-            } else {
-                tokens.push_back(make_token(TokenType::Minus));
-            }
-            break;
-
-        // Ignore whitespace
-        case ' ':
-        case '\r':
-        case '\t':
-            break;
-
-        case '\n':
-            line++;
-            break;
-
-        default:
-            if (std::isdigit(c)) {
-                tokens.push_back(number());
-            } else if (std::isalpha(c) || c == '_') {
-                tokens.push_back(identifier());
-            } else {
-                tokens.push_back(make_token(TokenType::Unknown));
-            }
-            break;
-    }
-}
-
-Token Lexer::number() {
-    while (std::isdigit(peek())) advance();
-    return make_token(TokenType::IntLiteral);
-}
-
-Token Lexer::identifier() {
-    while (std::isalnum(peek()) || peek() == '_') advance();
-
+void Lexer::add_token(TokenType type) {
     std::string text = source.substr(start, current - start);
+    tokens.push_back({type, text, line});
+}
 
-    static const std::map<std::string, TokenType> keywords = {
-        {"fn", TokenType::Fn},
-        {"return", TokenType::Return},
-        {"let", TokenType::Let},
-        {"mut", TokenType::Mut},
-        {"if", TokenType::If},
-        {"else", TokenType::Else},
-        {"while", TokenType::While},
-        {"int", TokenType::TypeIdentifier},
-        {"string", TokenType::TypeIdentifier},
-        {"bool", TokenType::TypeIdentifier},
-        {"float", TokenType::TypeIdentifier},
-    };
-
-    auto it = keywords.find(text);
-    if (it != keywords.end()) {
-        return make_token(it->second);
-    }
-
-    return make_token(TokenType::Identifier);
+bool Lexer::is_at_end() {
+    return current >= source.length();
 }
 
 } // namespace Quastra

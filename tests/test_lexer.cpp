@@ -16,6 +16,7 @@ fn main() -> int {
 )";
 
     // The ground truth: the exact sequence of tokens we expect.
+    // This has been corrected to match the actual TokenType enums.
     std::vector<Token> expected_tokens = {
         {TokenType::Fn, "fn", 3},
         {TokenType::Identifier, "main", 3},
@@ -38,10 +39,4 @@ fn main() -> int {
     for (size_t i = 0; i < expected_tokens.size(); ++i) {
         EXPECT_EQ(expected_tokens[i], actual_tokens[i]) << "Mismatch at index " << i;
     }
-}
-
-// Main function to initialize and run all tests.
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
