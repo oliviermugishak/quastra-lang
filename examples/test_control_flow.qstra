@@ -1,4 +1,4 @@
-// test_control_flow.q
+// test_control_flow.qstra
 // Tests loops, conditionals, and arithmetic.
 
 fn main() {
