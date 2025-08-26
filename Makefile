@@ -1,36 +1,58 @@
-# Define our compiler and flags
-CC = g++
-CFLAGS = -Wall -Wextra -std=c++11 -g
+# Makefile for the Quastra Compiler Project (System gtest version)
 
-# Define the source and object files
-SRCS_C = src/lexer.c src/codegen.c
-SRCS_CPP = src/main.cpp src/parser.cpp
+# Compiler and flags
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -g # Use C++17, enable all warnings, and include debug symbols
+INCLUDES = -I./src # Corrected include path to point to the 'src' directory
+LDFLAGS = -pthread # Linker flags, pthread is required by gtest
+LIBS = -lgtest -lgtest_main # Link against the system-installed gtest libraries
 
-OBJS_C = $(patsubst src/%.c, build/%.o, $(SRCS_C))
-OBJS_CPP = $(patsubst src/%.cpp, build/%.o, $(SRCS_CPP))
-
-OBJS = $(OBJS_C) $(OBJS_CPP)
-
-# Define the executable name and output directory
-EXECUTABLE = build/quastra
+# Directories
+SRC_DIR = src/lib/frontend
+TEST_DIR = tests
 BUILD_DIR = build
+OBJ_DIR = $(BUILD_DIR)/obj
+BIN_DIR = $(BUILD_DIR)/bin
 
-.PHONY: all
-all: $(BUILD_DIR) $(EXECUTABLE)
+# Source files
+SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
+TEST_SOURCES = $(wildcard $(TEST_DIR)/*.cpp)
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+# Object files
+OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
+TEST_OBJECTS = $(patsubst $(TEST_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(TEST_SOURCES))
 
-$(EXECUTABLE): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@
+# Executable name
+TEST_EXECUTABLE = $(BIN_DIR)/run_tests
 
-build/%.o: src/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Default target
+all: $(TEST_EXECUTABLE)
 
-build/%.o: src/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+# Rule to build the test executable
+$(TEST_EXECUTABLE): $(OBJECTS) $(TEST_OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS) $(LIBS)
+	@echo "✅ Test executable created at $(TEST_EXECUTABLE)"
 
-.PHONY: clean
+# Rule to compile source files into object files
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+# Rule to compile test files into object files
+$(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+# Target to run the tests
+test: $(TEST_EXECUTABLE)
+	@echo "🚀 Running tests..."
+	@$(TEST_EXECUTABLE)
+
+# Target to clean up build artifacts
 clean:
-	rm -rf $(BUILD_DIR)
-	rm -f out out.cpp
+	@echo "🧹 Cleaning up build files..."
+	@rm -rf $(BUILD_DIR)
+
+# Phony targets
+.PHONY: all test clean
