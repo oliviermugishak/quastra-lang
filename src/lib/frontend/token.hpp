@@ -22,7 +22,7 @@ enum class TokenType {
     // Separators
     LeftParen, RightParen, // ( )
     LeftBrace, RightBrace, // { }
-    Semicolon,
+    Semicolon, Comma,
     // Meta
     EndOfFile,
     Unknown,
