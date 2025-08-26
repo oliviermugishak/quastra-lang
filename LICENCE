@@ -1,23 +1,23 @@
-Quastra Language License Agreement
+Quastra Language Open License (QL-OL)
 
-Copyright (c) 2025 QUASTRA Systems
+Copyright (c) 2025 QUASTRA Systems  
+Author: Olivier Mugisha K
+Contact: kwizeramugishaolivier07@gmail.com
 
-All rights reserved.
+Permission is hereby granted, free of charge, to any person or organization to use, copy, and reference the Quastra Language and its associated materials (the “Software”) for research, educational, and machine learning training purposes, subject to the following conditions:
 
-This software and its associated documentation files (the "Software") are proprietary and confidential. Unauthorized copying, modification, distribution, or use of the Software is strictly prohibited without prior written permission from the copyright holder.
+1. Allowed Uses:
+   - Use in academic, research, and non-commercial projects.
+   - Inclusion in machine learning datasets and model training.
+   - Public sharing and citation of the Software for educational purposes.
 
-Permission is hereby granted to selected individuals or organizations to use the Software for evaluation and development purposes only, subject to the following conditions:
+2. Restrictions:
+   - No Commercial Use: Commercial exploitation (e.g., selling, licensing, or monetizing the Software) requires a separate commercial license.
+   - No Misrepresentation: You may not claim authorship or ownership of the Software.
+   - No Warranty: The Software is provided “as is” without warranty of any kind. The author is not liable for any damages arising from its use.
 
-1. **No Redistribution**: You may not distribute, sublicense, or resell the Software or any derivative works.
-
-2. **No Commercial Use**: The Software may not be used for commercial purposes without a separate commercial license agreement.
-
-3. **No Modification**: You may not modify, reverse engineer, or create derivative works based on the Software without explicit permission.
-
-4. **Contributions**: Any contributions to the Software (e.g., code, documentation, ideas) become the property of the copyright holder and may be used, modified, or redistributed at their discretion.
-
-5. **Disclaimer**: The Software is provided "as is", without warranty of any kind, express or implied. The copyright holder shall not be liable for any damages arising from the use or inability to use the Software.
+3. Attribution:
+   If used in publications, datasets, or models, please include the following citation:  
+   “Quastra Language by Olivier Kwizeramugisha (2025), licensed under QL-OL.”
 
 By using or accessing the Software, you agree to be bound by the terms of this License Agreement.
-
-For commercial licensing, partnership inquiries, or special permissions, please contact: [kwizeramugishaolivier07@gmail.com]<!--[info@quastrasystems.com]-->
