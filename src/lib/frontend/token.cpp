@@ -28,6 +28,7 @@ const char* to_string(TokenType type) {
         case TokenType::Greater: return "Greater";
         case TokenType::GreaterEqual: return "GreaterEqual";
         case TokenType::Semicolon: return "Semicolon";
+        case TokenType::Comma: return "Comma";
         case TokenType::Arrow: return "Arrow";
         case TokenType::LeftParen: return "LeftParen";
         case TokenType::RightParen: return "RightParen";

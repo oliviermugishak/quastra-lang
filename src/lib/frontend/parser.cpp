@@ -20,7 +20,6 @@ std::unique_ptr<AST::Stmt> Parser::declaration() {
         if (match({TokenType::Let})) return var_declaration();
         return statement();
     } catch (const std::runtime_error& e) {
-        // A real compiler would synchronize here to recover.
         return nullptr;
     }
 }
@@ -32,7 +31,7 @@ std::unique_ptr<AST::Stmt> Parser::function_declaration() {
     if (peek().type != TokenType::RightParen) {
         do {
             parameters.push_back(consume(TokenType::Identifier, "Expect parameter name."));
-        } while (match({TokenType::Semicolon})); // Placeholder for comma
+        } while (match({TokenType::Comma}));
     }
     consume(TokenType::RightParen, "Expect ')' after parameters.");
     consume(TokenType::LeftBrace, "Expect '{' before function body.");
@@ -172,7 +171,7 @@ std::unique_ptr<AST::Expr> Parser::call() {
             if (peek().type != TokenType::RightParen) {
                 do {
                     arguments.push_back(expression());
-                } while (match({TokenType::Semicolon})); // Placeholder
+                } while (match({TokenType::Comma}));
             }
             Token paren = consume(TokenType::RightParen, "Expect ')' after arguments.");
             expr = std::make_unique<AST::Call>(std::move(expr), paren, std::move(arguments));
