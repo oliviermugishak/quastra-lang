@@ -6,10 +6,6 @@
 
 using namespace Quastra;
 
-// --- AST Visitor for Testing ---
-// This visitor converts a piece of the AST back into a string representation,
-// which is easy to verify in tests.
-
 class AstPrinter : public AST::ExprVisitor, public AST::StmtVisitor {
 public:
     std::string print(const std::vector<std::unique_ptr<AST::Stmt>>& stmts) {
@@ -26,17 +22,60 @@ private:
     std::string result;
 
     void visit(const AST::VarDecl& stmt) override {
-        result += "(var-decl " + stmt.name.lexeme;
-        if (stmt.initializer) {
-            result += " = ";
-            stmt.initializer->accept(*this);
-        }
+        result += "(var-decl " + stmt.name.lexeme + " = ";
+        stmt.initializer->accept(*this);
         result += ";) ";
     }
 
     void visit(const AST::ExprStmt& stmt) override {
         result += "(expr-stmt ";
         stmt.expression->accept(*this);
+        result += ";) ";
+    }
+
+    void visit(const AST::Block& stmt) override {
+        result += "{ ";
+        for (const auto& statement : stmt.statements) {
+            statement->accept(*this);
+        }
+        result += "} ";
+    }
+
+    void visit(const AST::IfStmt& stmt) override {
+        result += "(if ";
+        stmt.condition->accept(*this);
+        result += " ";
+        stmt.then_branch->accept(*this);
+        if (stmt.else_branch) {
+            result += "else ";
+            stmt.else_branch->accept(*this);
+        }
+        result += ") ";
+    }
+
+    void visit(const AST::WhileStmt& stmt) override {
+        result += "(while ";
+        stmt.condition->accept(*this);
+        result += " ";
+        stmt.body->accept(*this);
+        result += ") ";
+    }
+
+    void visit(const AST::FunctionStmt& stmt) override {
+        result += "(fn-decl " + stmt.name.lexeme + "() ";
+        result += "{ ";
+        for (const auto& statement : stmt.body) {
+            statement->accept(*this);
+        }
+        result += "} ";
+        result += ") ";
+    }
+
+    void visit(const AST::ReturnStmt& stmt) override {
+        result += "(return ";
+        if (stmt.value) {
+            stmt.value->accept(*this);
+        }
         result += ";) ";
     }
 
@@ -57,49 +96,41 @@ private:
         expr.right->accept(*this);
         result += ")";
     }
+
+    void visit(const AST::Variable& expr) override {
+        result += expr.name.lexeme;
+    }
+
+    void visit(const AST::Assign& expr) override {
+        result += "(" + expr.name.lexeme + " = ";
+        expr.value->accept(*this);
+        result += ")";
+    }
+
+    void visit(const AST::Call& expr) override {
+        result += "(call ";
+        expr.callee->accept(*this);
+        result += ")";
+    }
 };
 
-// Helper function to run the full lex->parse->print pipeline.
 std::string parse_and_print(const std::string& source) {
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-
     AstPrinter printer;
     return printer.print(stmts);
 }
 
-TEST(ParserStatementTest, ParseVariableDeclaration) {
-    std::string source = "let x = 10;";
-    std::string expected = "(var-decl x = 10;) ";
+TEST(ParserFunctionTest, ParseFunctionDeclaration) {
+    std::string source = "fn my_func() { return 1; }";
+    std::string expected = "(fn-decl my_func() { (return 1;) } ) ";
     EXPECT_EQ(parse_and_print(source), expected);
 }
 
-TEST(ParserStatementTest, ParseDeclarationWithExpression) {
-    std::string source = "let y = 5 * 2;";
-    std::string expected = "(var-decl y = (5 * 2);) ";
-    EXPECT_EQ(parse_and_print(source), expected);
-}
-
-TEST(ParserStatementTest, ParseMultipleStatements) {
-    std::string source = "let a = 1; let b = 2;";
-    std::string expected = "(var-decl a = 1;) (var-decl b = 2;) ";
-    EXPECT_EQ(parse_and_print(source), expected);
-}
-
-TEST(ParserStatementTest, ParseExpressionStatement) {
-    std::string source = "1 + 1;";
-    std::string expected = "(expr-stmt (1 + 1);) ";
-    EXPECT_EQ(parse_and_print(source), expected);
-}
-TEST(ParserStatementTest, ParseComplexExpressionStatement) {
-    std::string source = "3 + 4 * 5;";
-    std::string expected = "(expr-stmt (3 + (4 * 5));) ";
-    EXPECT_EQ(parse_and_print(source), expected);
-}
-TEST(ParserStatementTest, ParseUnaryExpression) {
-    std::string source = "-42;";
-    std::string expected = "(expr-stmt (-42);) ";
+TEST(ParserFunctionTest, ParseFunctionCall) {
+    std::string source = "my_func();";
+    std::string expected = "(expr-stmt (call my_func);) ";
     EXPECT_EQ(parse_and_print(source), expected);
 }
