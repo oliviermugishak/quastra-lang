@@ -13,12 +13,11 @@ OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
 
 # VPATH tells 'make' where to look for source files.
-# Corrected to include the root src directory for main.cpp
-VPATH = $(shell find src src/lib tests src/lib/semantic -type d)
+VPATH = $(shell find src src/lib tests src/lib/semantic src/lib/runtime -type d)
 
 # --- Source Files ---
 # Find all library and main source files automatically.
-SOURCES = $(notdir $(shell find src/lib src/lib/semantic -name '*.cpp'))
+SOURCES = $(notdir $(shell find src/lib -name '*.cpp'))
 MAIN_SOURCE = main.cpp
 
 # Explicitly list all test source files for a more robust build.
@@ -27,7 +26,8 @@ TEST_SOURCES = \
     test_parser.cpp \
     test_interpreter.cpp \
     test_codegen.cpp \
-    test_type_checker.cpp
+    test_type_checker.cpp \
+    test_stdlib.cpp
 
 # --- Object Files ---
 OBJECTS = $(addprefix $(OBJ_DIR)/, $(SOURCES:.cpp=.o))
@@ -35,6 +35,7 @@ MAIN_OBJECT = $(addprefix $(OBJ_DIR)/, $(MAIN_SOURCE:.cpp=.o))
 TEST_OBJECTS = $(addprefix $(OBJ_DIR)/, $(TEST_SOURCES:.cpp=.o))
 
 # --- Executables ---
+# Updated executable name
 COMPILER_EXECUTABLE = $(BIN_DIR)/quastra
 TEST_EXECUTABLE = $(BIN_DIR)/run_tests
 

@@ -1,5 +1,6 @@
 #include "interpreter.hpp"
-#include "../runtime/quastra_callable.hpp" // Include the new callable header
+#include "../runtime/quastra_callable.hpp"
+#include "../runtime/native_functions.hpp" // Include our new native function
 #include <stdexcept>
 
 namespace Quastra {
@@ -13,6 +14,8 @@ bool is_equal(const QuastraValue& a, const QuastraValue& b) { return a == b; }
 
 Interpreter::Interpreter() {
     environment = std::make_shared<Environment>();
+    // Define the native println function in the global scope.
+    environment->define("println", std::make_shared<PrintlnFunction>());
 }
 
 void Interpreter::interpret(const std::vector<std::unique_ptr<AST::Stmt>>& statements) {
