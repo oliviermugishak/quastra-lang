@@ -8,7 +8,8 @@
 using namespace Quastra;
 
 // Helper to interpret code and get the final environment.
-std::shared_ptr<Environment> interpret_and_get_env(const std::string& source) {
+// Making it 'static' limits its scope to just this file.
+static std::shared_ptr<Environment> interpret_and_get_env(const std::string& source) {
     Lexer lexer(source);
     auto tokens = lexer.scan_tokens();
     Parser parser(tokens);
@@ -19,7 +20,8 @@ std::shared_ptr<Environment> interpret_and_get_env(const std::string& source) {
 }
 
 // Helper to interpret code and get the value of the last expression.
-QuastraValue interpret_and_get_value(const std::string& source) {
+// Making it 'static' limits its scope to just this file.
+static QuastraValue interpret_and_get_value(const std::string& source) {
     class TestInterpreter : public Interpreter {
     public:
         QuastraValue get_last_value() { return last_evaluated_value; }
@@ -71,4 +73,49 @@ TEST(InterpreterBooleanTest, ComparisonOperators) {
     EXPECT_EQ(std::get<bool>(interpret_and_get_value("2 <= 2;")), true);
     EXPECT_EQ(std::get<bool>(interpret_and_get_value("5 == 5;")), true);
     EXPECT_EQ(std::get<bool>(interpret_and_get_value("5 != 5;")), false);
+}
+
+TEST(InterpreterFunctionTest, FunctionCall) {
+    std::string source = R"(
+        fn add(a, b) {
+            return a + b;
+        }
+        add(3, 4);
+    )";
+    ASSERT_EQ(std::get<double>(interpret_and_get_value(source)), 7.0);
+}
+
+TEST(InterpreterFunctionTest, ReturnValue) {
+    std::string source = R"(
+        fn five() {
+            return 5;
+        }
+        five();
+    )";
+    ASSERT_EQ(std::get<double>(interpret_and_get_value(source)), 5.0);
+}
+
+TEST(InterpreterFunctionTest, Recursion) {
+    std::string source = R"(
+        fn fib(n) {
+            if (n < 2) {
+                return n;
+            }
+            return fib(n - 2) + fib(n - 1);
+        }
+        fib(8);
+    )";
+    // fib(8) = 21
+    ASSERT_EQ(std::get<double>(interpret_and_get_value(source)), 21.0);
+}
+
+TEST(InterpreterFunctionTest, Closure) {
+    std::string source = R"(
+        let x = 10;
+        fn add_x(y) {
+            return x + y;
+        }
+        add_x(5);
+    )";
+    ASSERT_EQ(std::get<double>(interpret_and_get_value(source)), 15.0);
 }

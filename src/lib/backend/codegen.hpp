@@ -1,36 +1,23 @@
 #pragma once
 
 #include "../frontend/ast.hpp"
-#include "../runtime/environment.hpp"
+#include <string>
 #include <vector>
 #include <memory>
+#include <sstream>
 
 namespace Quastra {
 
-// A custom exception used to unwind the stack for return statements.
-class ReturnException {
+// The CodeGen class walks the AST and generates equivalent C++ source code.
+class CodeGen : public AST::ExprVisitor, public AST::StmtVisitor {
 public:
-    QuastraValue value;
-    ReturnException(QuastraValue value) : value(std::move(value)) {}
-};
-
-class Interpreter : public AST::ExprVisitor, public AST::StmtVisitor {
-public:
-    Interpreter();
-
-    void interpret(const std::vector<std::unique_ptr<AST::Stmt>>& statements);
-    void execute_block(const std::vector<std::unique_ptr<AST::Stmt>>& statements, std::shared_ptr<Environment> environment);
-
-    std::shared_ptr<Environment> get_environment() const { return environment; }
-
-protected:
-    QuastraValue last_evaluated_value;
-    std::shared_ptr<Environment> environment;
+    // The main entry point. Takes an AST and returns a string of C++ code.
+    std::string generate(const std::vector<std::unique_ptr<AST::Stmt>>& statements);
 
 private:
     // Statement visitors
-    void visit(const AST::VarDecl& stmt) override;
     void visit(const AST::ExprStmt& stmt) override;
+    void visit(const AST::VarDecl& stmt) override;
     void visit(const AST::Block& stmt) override;
     void visit(const AST::IfStmt& stmt) override;
     void visit(const AST::WhileStmt& stmt) override;
@@ -45,7 +32,14 @@ private:
     void visit(const AST::Assign& expr) override;
     void visit(const AST::Call& expr) override;
 
-    QuastraValue evaluate(const AST::Expr& expr);
+    // Helper to generate code for a single node.
+    void generate_code(const AST::Stmt& stmt);
+    void generate_code(const AST::Expr& expr);
+
+    std::stringstream output;
+    int indent_level = 0;
+
+    void indent();
 };
 
 } // namespace Quastra
