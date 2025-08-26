@@ -1,4 +1,4 @@
-![Quastra Logo](./assets/logo.png)
+![Quastra Logo] (../sets/logo.png)
 
 # 🧘 Quastra Language
 
