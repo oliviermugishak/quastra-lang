@@ -6,6 +6,7 @@
 
 using namespace Quastra;
 
+// --- AST Visitor for Testing ---
 class AstPrinter : public AST::ExprVisitor, public AST::StmtVisitor {
 public:
     std::string print(const std::vector<std::unique_ptr<AST::Stmt>>& stmts) {
@@ -22,8 +23,11 @@ private:
     std::string result;
 
     void visit(const AST::VarDecl& stmt) override {
-        result += "(var-decl " + stmt.name.lexeme + " = ";
-        stmt.initializer->accept(*this);
+        result += "(var-decl " + stmt.name.lexeme;
+        if (stmt.initializer) {
+            result += " = ";
+            stmt.initializer->accept(*this);
+        }
         result += ";) ";
     }
 
@@ -62,7 +66,12 @@ private:
     }
 
     void visit(const AST::FunctionStmt& stmt) override {
-        result += "(fn-decl " + stmt.name.lexeme + "() ";
+        result += "(fn-decl " + stmt.name.lexeme + "(";
+        for (size_t i = 0; i < stmt.params.size(); ++i) {
+            result += stmt.params[i].lexeme;
+            if (i < stmt.params.size() - 1) result += ", ";
+        }
+        result += ") ";
         result += "{ ";
         for (const auto& statement : stmt.body) {
             statement->accept(*this);
@@ -110,10 +119,16 @@ private:
     void visit(const AST::Call& expr) override {
         result += "(call ";
         expr.callee->accept(*this);
-        result += ")";
+        result += "(";
+        for (size_t i = 0; i < expr.arguments.size(); ++i) {
+            expr.arguments[i]->accept(*this);
+            if (i < expr.arguments.size() - 1) result += ", ";
+        }
+        result += "))";
     }
 };
 
+// Helper function to run the full lex->parse->print pipeline.
 std::string parse_and_print(const std::string& source) {
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
@@ -129,8 +144,21 @@ TEST(ParserFunctionTest, ParseFunctionDeclaration) {
     EXPECT_EQ(parse_and_print(source), expected);
 }
 
+TEST(ParserFunctionTest, ParseFunctionWithParameters) {
+    std::string source = "fn add(a, b) { return a + b; }";
+    std::string expected = "(fn-decl add(a, b) { (return (a + b);) } ) ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+
 TEST(ParserFunctionTest, ParseFunctionCall) {
     std::string source = "my_func();";
-    std::string expected = "(expr-stmt (call my_func);) ";
+    std::string expected = "(expr-stmt (call my_func());) ";
+    EXPECT_EQ(parse_and_print(source), expected);
+}
+
+TEST(ParserFunctionTest, ParseFunctionCallWithArguments) {
+    std::string source = "add(1, 2);";
+    std::string expected = "(expr-stmt (call add(1, 2));) ";
     EXPECT_EQ(parse_and_print(source), expected);
 }

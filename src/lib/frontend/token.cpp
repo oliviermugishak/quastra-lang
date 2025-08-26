@@ -11,6 +11,8 @@ const char* to_string(TokenType type) {
         case TokenType::If: return "If";
         case TokenType::Else: return "Else";
         case TokenType::While: return "While";
+        case TokenType::True: return "True";
+        case TokenType::False: return "False";
         case TokenType::Identifier: return "Identifier";
         case TokenType::TypeIdentifier: return "TypeIdentifier";
         case TokenType::IntLiteral: return "IntLiteral";
@@ -19,6 +21,12 @@ const char* to_string(TokenType type) {
         case TokenType::Star: return "Star";
         case TokenType::Slash: return "Slash";
         case TokenType::Equal: return "Equal";
+        case TokenType::EqualEqual: return "EqualEqual";
+        case TokenType::BangEqual: return "BangEqual";
+        case TokenType::Less: return "Less";
+        case TokenType::LessEqual: return "LessEqual";
+        case TokenType::Greater: return "Greater";
+        case TokenType::GreaterEqual: return "GreaterEqual";
         case TokenType::Semicolon: return "Semicolon";
         case TokenType::Arrow: return "Arrow";
         case TokenType::LeftParen: return "LeftParen";

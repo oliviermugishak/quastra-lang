@@ -20,6 +20,7 @@ std::unique_ptr<AST::Stmt> Parser::declaration() {
         if (match({TokenType::Let})) return var_declaration();
         return statement();
     } catch (const std::runtime_error& e) {
+        // A real compiler would synchronize here to recover.
         return nullptr;
     }
 }
@@ -31,7 +32,7 @@ std::unique_ptr<AST::Stmt> Parser::function_declaration() {
     if (peek().type != TokenType::RightParen) {
         do {
             parameters.push_back(consume(TokenType::Identifier, "Expect parameter name."));
-        } while (match({TokenType::Identifier})); // Simplified for now
+        } while (match({TokenType::Semicolon})); // Placeholder for comma
     }
     consume(TokenType::RightParen, "Expect ')' after parameters.");
     consume(TokenType::LeftBrace, "Expect '{' before function body.");
@@ -107,7 +108,7 @@ std::unique_ptr<AST::Expr> Parser::expression() {
 }
 
 std::unique_ptr<AST::Expr> Parser::assignment() {
-    std::unique_ptr<AST::Expr> expr = term();
+    std::unique_ptr<AST::Expr> expr = equality();
     if (match({TokenType::Equal})) {
         Token equals = previous();
         std::unique_ptr<AST::Expr> value = assignment();
@@ -115,6 +116,24 @@ std::unique_ptr<AST::Expr> Parser::assignment() {
             return std::make_unique<AST::Assign>(var->name, std::move(value));
         }
         throw std::runtime_error("Invalid assignment target.");
+    }
+    return expr;
+}
+
+std::unique_ptr<AST::Expr> Parser::equality() {
+    std::unique_ptr<AST::Expr> expr = comparison();
+    while (match({TokenType::BangEqual, TokenType::EqualEqual})) {
+        Token op = previous();
+        expr = std::make_unique<AST::Binary>(std::move(expr), op, comparison());
+    }
+    return expr;
+}
+
+std::unique_ptr<AST::Expr> Parser::comparison() {
+    std::unique_ptr<AST::Expr> expr = term();
+    while (match({TokenType::Greater, TokenType::GreaterEqual, TokenType::Less, TokenType::LessEqual})) {
+        Token op = previous();
+        expr = std::make_unique<AST::Binary>(std::move(expr), op, term());
     }
     return expr;
 }
@@ -147,14 +166,13 @@ std::unique_ptr<AST::Expr> Parser::unary() {
 
 std::unique_ptr<AST::Expr> Parser::call() {
     std::unique_ptr<AST::Expr> expr = primary();
-
     while (true) {
         if (match({TokenType::LeftParen})) {
             std::vector<std::unique_ptr<AST::Expr>> arguments;
             if (peek().type != TokenType::RightParen) {
                 do {
                     arguments.push_back(expression());
-                } while (match({TokenType::Identifier})); // Simplified
+                } while (match({TokenType::Semicolon})); // Placeholder
             }
             Token paren = consume(TokenType::RightParen, "Expect ')' after arguments.");
             expr = std::make_unique<AST::Call>(std::move(expr), paren, std::move(arguments));
@@ -166,6 +184,8 @@ std::unique_ptr<AST::Expr> Parser::call() {
 }
 
 std::unique_ptr<AST::Expr> Parser::primary() {
+    if (match({TokenType::False})) return std::make_unique<AST::Literal>(Token{TokenType::False, "false", previous().line});
+    if (match({TokenType::True})) return std::make_unique<AST::Literal>(Token{TokenType::True, "true", previous().line});
     if (match({TokenType::IntLiteral})) return std::make_unique<AST::Literal>(previous());
     if (match({TokenType::Identifier})) return std::make_unique<AST::Variable>(previous());
     if (match({TokenType::LeftParen})) {

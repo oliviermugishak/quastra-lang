@@ -2,25 +2,27 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -g # Use C++17, enable all warnings, and include debug symbols
-INCLUDES = -I./src # Corrected include path to point to the 'src' directory
-LDFLAGS = -pthread # Linker flags, pthread is required by gtest
-LIBS = -lgtest -lgtest_main # Link against the system-installed gtest libraries
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
+INCLUDES = -I./src
+LDFLAGS = -pthread
+LIBS = -lgtest -lgtest_main
 
 # Directories
-SRC_DIR = src/lib/frontend
-TEST_DIR = tests
 BUILD_DIR = build
 OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
 
-# Source files
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
-TEST_SOURCES = $(wildcard $(TEST_DIR)/*.cpp)
+# VPATH tells 'make' where to look for source files.
+# This is corrected to search all subdirectories of src/lib AND tests.
+VPATH = $(shell find src/lib tests -type d)
+
+# Source files are now found automatically in all subdirectories of src/lib.
+SOURCES = $(notdir $(shell find src/lib -name '*.cpp'))
+TEST_SOURCES = $(notdir $(shell find tests -name '*.cpp'))
 
 # Object files
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
-TEST_OBJECTS = $(patsubst $(TEST_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(TEST_SOURCES))
+OBJECTS = $(addprefix $(OBJ_DIR)/, $(SOURCES:.cpp=.o))
+TEST_OBJECTS = $(addprefix $(OBJ_DIR)/, $(TEST_SOURCES:.cpp=.o))
 
 # Executable name
 TEST_EXECUTABLE = $(BIN_DIR)/run_tests
@@ -34,13 +36,9 @@ $(TEST_EXECUTABLE): $(OBJECTS) $(TEST_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS) $(LIBS)
 	@echo "✅ Test executable created at $(TEST_EXECUTABLE)"
 
-# Rule to compile source files into object files
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-# Rule to compile test files into object files
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
+# Generic rule to compile any .cpp file into an object file.
+# The VPATH directive will ensure 'make' finds the source file.
+$(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
