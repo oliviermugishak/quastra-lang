@@ -16,7 +16,6 @@ public:
 private:
     // Statement parsing
     std::unique_ptr<AST::Stmt> declaration();
-    // Add missing declarations
     std::unique_ptr<AST::Stmt> function_declaration();
     std::unique_ptr<AST::Stmt> return_statement();
     std::unique_ptr<AST::Stmt> var_declaration();
@@ -34,7 +33,6 @@ private:
     std::unique_ptr<AST::Expr> term();
     std::unique_ptr<AST::Expr> factor();
     std::unique_ptr<AST::Expr> unary();
-    // Add missing declaration
     std::unique_ptr<AST::Expr> call();
     std::unique_ptr<AST::Expr> primary();
 
@@ -45,9 +43,12 @@ private:
     bool is_at_end();
     Token peek();
     Token previous();
+    // New method for error recovery
+    void synchronize();
 
     const std::vector<Token>& tokens;
     size_t current = 0;
+    bool had_error = false;
 };
 
 } // namespace Quastra

@@ -13,7 +13,8 @@ OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
 
 # VPATH tells 'make' where to look for source files.
-VPATH = $(shell find src/lib tests src/lib/semantic -type d)
+# Corrected to include the root src directory for main.cpp
+VPATH = $(shell find src src/lib tests src/lib/semantic -type d)
 
 # --- Source Files ---
 # Find all library and main source files automatically.

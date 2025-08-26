@@ -1,0 +1,18 @@
+// test_scopes.q
+// Tests variable scoping, shadowing, and mutability.
+
+fn main() {
+    let x = 10; // Outer, immutable x
+
+    {
+        let mut x = 20; // Inner, mutable x (shadows the outer one)
+        x = x + 5;      // This should be valid (x is now 25)
+    }
+
+    // This assignment should fail if uncommented, because the outer x is immutable.
+    // x = 30;
+
+    let y = x; // This should use the outer x, so y will be 10.
+
+    return 0;
+}

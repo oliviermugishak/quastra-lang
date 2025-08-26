@@ -50,6 +50,18 @@ int main(int argc, char* argv[]) {
         return 64; // Command line usage error
     }
 
+    std::string arg = argv[1];
+
+    if (arg == "--version") {
+        std::cout << "Quastra Compiler v1.0.0\n"
+          << "Copyright (c) 2025 Quastra Systems\n"
+          << "Licensed under the MIT License\n"
+          << "This compiler translates Quastra source files (.q) into C++ code.\n"
+          << "For documentation and updates, visit: https://quastra.dev\n";
+
+        return 0;
+    }
+
     std::string source_path = argv[1];
     std::string source_code = read_file(source_path);
     run(source_code);
